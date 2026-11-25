@@ -88,6 +88,8 @@ function AppContent() {
 
   const [simTargetId, setSimTargetId] = useState<string>('resistor');
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [quickSearchOpen, setQuickSearchOpen] = useState<boolean>(false);
+  const quickSearchRef = useRef<HTMLDivElement | null>(null);
   const [moreMenuOpen, setMoreMenuOpen] = useState<boolean>(false);
   const moreMenuRef = useRef<HTMLDivElement | null>(null);
 
@@ -265,6 +267,24 @@ function AppContent() {
   }, [moreMenuOpen]);
 
   useEffect(() => {
+    if (!quickSearchOpen) return;
+    const handleOutside = (e: MouseEvent) => {
+      if (quickSearchRef.current && !quickSearchRef.current.contains(e.target as Node)) {
+        setQuickSearchOpen(false);
+      }
+    };
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setQuickSearchOpen(false);
+    };
+    document.addEventListener('mousedown', handleOutside);
+    window.addEventListener('keydown', handleKey);
+    return () => {
+      document.removeEventListener('mousedown', handleOutside);
+      window.removeEventListener('keydown', handleKey);
+    };
+  }, [quickSearchOpen]);
+
+  useEffect(() => {
     const root = document.documentElement;
     if (isDark) {
       root.classList.add('dark');
@@ -328,6 +348,22 @@ function AppContent() {
       );
     });
   }, [bookmarks, categoryFilter, searchQuery, lang]);
+
+  const quickSearchMatches = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return [];
+    return ELECTRONIC_COMPONENTS.filter((comp) => {
+      const loc = getLocalizedComponent(comp, lang);
+      return (
+        loc.name.toLowerCase().includes(q) ||
+        loc.shortRole.toLowerCase().includes(q) ||
+        loc.categoryLabel.toLowerCase().includes(q) ||
+        comp.nameAr.toLowerCase().includes(q) ||
+        comp.nameEn.toLowerCase().includes(q) ||
+        comp.symbolLetter.toLowerCase().includes(q)
+      );
+    });
+  }, [searchQuery, lang]);
 
   const handleOpenMultimeterFor = (componentId: string) => {
     setSimTargetId(componentId);
@@ -437,16 +473,167 @@ function AppContent() {
 
       {/* Main Content */}
       <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-4 sm:py-6 sm:px-6 pb-24 md:pb-12">
-        {/* Persistent Workspace Bar: Creator/Offline metadata + Theme & Settings */}
-        <div className="mb-5 flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-[#E2E8F0] dark:border-[#334155]">
-          <div className="text-xs font-medium text-slate-500 dark:text-slate-400">
-            <span>{t.creatorPrefix} </span>
-            <strong className="font-semibold text-slate-800 dark:text-slate-100">{t.creatorName}</strong>
-            <span className="mx-1.5" aria-hidden="true">·</span>
-            <span>{t.offlineBadge}</span>
+        {/* Persistent Workspace Bar: Developer Badge Card + Quick Search, Theme & Settings */}
+        <div className="mb-5 flex flex-col gap-3 pb-4 border-b border-[#E2E8F0] dark:border-[#334155] lg:flex-row lg:items-center lg:justify-between">
+          {/* Developer Badge Card */}
+          <div className="flex flex-wrap items-center justify-between gap-2.5 sm:gap-4 rounded-2xl border border-emerald-200/90 dark:border-emerald-800/70 bg-gradient-to-r from-emerald-50/85 via-white to-emerald-50/45 dark:from-emerald-950/50 dark:via-[#1E293B] dark:to-emerald-950/30 px-3.5 py-2 shadow-sm shrink-0">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-emerald-200/80 dark:border-emerald-700/60 bg-emerald-100/80 dark:bg-emerald-900/50 text-[#059669] dark:text-emerald-400">
+                <GraduationCap className="h-4 w-4" aria-hidden="true" />
+              </div>
+              <div className="text-xs sm:text-[13px] leading-snug text-slate-700 dark:text-slate-200">
+                <span className="font-semibold text-[#047857] dark:text-emerald-400">
+                  {pick('إعداد وتطوير:', 'Conception et développement :', 'Prepared & Developed by:')}{' '}
+                </span>
+                <strong className="font-extrabold text-slate-900 dark:text-white">
+                  {t.creatorName}
+                </strong>
+              </div>
+            </div>
+
+            <div className="inline-flex items-center gap-1.5 rounded-full border border-emerald-300/80 dark:border-emerald-700/70 bg-emerald-50 dark:bg-emerald-950/75 px-2.5 py-1 text-[11px] font-bold text-[#047857] dark:text-emerald-300 whitespace-nowrap shrink-0">
+              <span className="relative flex h-2 w-2 shrink-0" aria-hidden="true">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-65" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-[#10B981] shadow-[0_0_7px_rgba(16,185,129,0.9)]" />
+              </span>
+              <span>{t.offlineBadge}</span>
+            </div>
           </div>
 
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex flex-1 items-center justify-end gap-2 min-w-0">
+            {/* Sleek Quick Component Search Bar */}
+            <div ref={quickSearchRef} className="relative flex-1 sm:flex-initial sm:w-56 md:w-64 xl:w-72 min-w-0">
+              <div className="relative flex items-center">
+                <Search
+                  className={`pointer-events-none absolute start-3 h-4 w-4 transition-colors ${
+                    searchQuery.trim()
+                      ? 'text-[#059669] dark:text-emerald-400'
+                      : 'text-slate-400'
+                  }`}
+                />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onFocus={() => setQuickSearchOpen(true)}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    setQuickSearchOpen(true);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && searchQuery.trim()) {
+                      if (quickSearchMatches.length === 1) {
+                        setQuickSearchOpen(false);
+                        pushNav({
+                          selectedComponentId: quickSearchMatches[0].id,
+                          glossaryTermModalId: null,
+                        });
+                      } else {
+                        setQuickSearchOpen(false);
+                        pushNav({ activeTab: 'components', categoryFilter: 'all' });
+                      }
+                    }
+                  }}
+                  placeholder={pick(
+                    'بحث سريع عن عنصر...',
+                    'Recherche rapide...',
+                    'Quick search parts...'
+                  )}
+                  aria-label={t.hero.searchAria}
+                  className="h-[44px] w-full rounded-xl border border-[#E2E8F0] dark:border-[#334155] bg-white dark:bg-[#1E293B] ps-9 pe-9 text-xs sm:text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:border-[#059669] dark:focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-[#059669]/15 transition-all shadow-sm"
+                />
+                {searchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSearchQuery('');
+                      setQuickSearchOpen(false);
+                    }}
+                    aria-label={pick('مسح البحث', 'Effacer la recherche', 'Clear search')}
+                    className="absolute end-1.5 flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-700 dark:hover:text-slate-200 transition-colors"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                )}
+              </div>
+
+              {/* Instant Live Results Dropdown */}
+              {quickSearchOpen && searchQuery.trim().length > 0 && (
+                <div
+                  role="listbox"
+                  aria-label={pick('نتائج البحث السريع', 'Résultats rapides', 'Quick search results')}
+                  className="absolute inset-x-0 top-full z-40 mt-2 overflow-hidden rounded-2xl border border-[#E2E8F0] dark:border-[#334155] bg-white dark:bg-[#1E293B] shadow-xl"
+                >
+                  {quickSearchMatches.length === 0 ? (
+                    <div className="px-4 py-4 text-center text-xs font-medium text-slate-500 dark:text-slate-400">
+                      {t.hero.noResults}
+                    </div>
+                  ) : (
+                    <>
+                      <div className="max-h-72 overflow-y-auto divide-y divide-[#E2E8F0]/70 dark:divide-[#334155]/70">
+                        {quickSearchMatches.slice(0, 6).map((comp) => {
+                          const loc = getLocalizedComponent(comp, lang);
+                          return (
+                            <button
+                              key={comp.id}
+                              type="button"
+                              onClick={() => {
+                                setQuickSearchOpen(false);
+                                pushNav({
+                                  selectedComponentId: comp.id,
+                                  glossaryTermModalId: null,
+                                });
+                              }}
+                              className={`flex w-full items-center gap-3 px-3 py-2.5 hover:bg-emerald-50/70 dark:hover:bg-emerald-950/35 transition-colors ${
+                                isRtl ? 'text-right' : 'text-left'
+                              }`}
+                            >
+                              <div className="h-10 w-10 shrink-0 overflow-hidden rounded-lg border border-[#E2E8F0] dark:border-[#334155] bg-[#F8FAFC] dark:bg-[#0F172A]">
+                                <ComponentImage
+                                  src={comp.imageUrl}
+                                  alt={loc.name}
+                                  componentId={comp.id}
+                                  className="h-full w-full object-cover"
+                                />
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                <div className="truncate text-xs sm:text-sm font-bold text-slate-900 dark:text-white">
+                                  {loc.name}
+                                </div>
+                                <div className="flex items-center gap-1.5 text-[11px] text-slate-500 dark:text-slate-400 truncate">
+                                  <span>{loc.categoryLabel}</span>
+                                  <span aria-hidden="true">·</span>
+                                  <span className="font-mono-num" dir="ltr">
+                                    {comp.nameEn} ({comp.symbolLetter})
+                                  </span>
+                                </div>
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setQuickSearchOpen(false);
+                          pushNav({ activeTab: 'components', categoryFilter: 'all' });
+                        }}
+                        className="flex w-full items-center justify-center gap-1.5 border-t border-[#E2E8F0] dark:border-[#334155] bg-[#F8FAFC] dark:bg-[#0F172A]/80 px-3 py-2.5 text-xs font-bold text-[#059669] dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 transition-colors"
+                      >
+                        <span>
+                          {pick(
+                            `عرض كل النتائج في الدليل (${quickSearchMatches.length})`,
+                            `Voir tous les résultats (${quickSearchMatches.length})`,
+                            `Show all matches (${quickSearchMatches.length})`
+                          )}
+                        </span>
+                      </button>
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
+
             <button
               type="button"
               onClick={() => setIsDark((d) => !d)}
