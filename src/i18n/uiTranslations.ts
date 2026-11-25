@@ -15,11 +15,14 @@ export interface UIStrings {
   copyrightWarning: string;
   footerCopyright: string;
   footerAppTitle: string;
+  footerSingleNotice: string;
   nav: {
     components: string;
     componentsMobile: string;
     circuit: string;
     circuitMobile: string;
+    breadboard: string;
+    breadboardMobile: string;
     projects: string;
     projectsMobile: string;
     lab: string;
@@ -44,16 +47,23 @@ export interface UIStrings {
     searchPlaceholder: string;
     searchAria: string;
     saved: string;
+    favoritesEmpty: string;
     noResults: string;
     showAll: string;
     symbolPrefix: string;
     readMore: string;
     saveAria: string;
     unsaveAria: string;
+    resistorReaderBtn: string;
   };
   categories: Record<'all' | 'passive' | 'semiconductor' | 'power' | 'sensor', string>;
   labTabs: {
     multimeter: string;
+    breadboard: string;
+    pcb: string;
+    resistor: string;
+    capacitor: string;
+    pinout: string;
     calculators: string;
   };
   settings: {
@@ -71,6 +81,10 @@ export interface UIStrings {
     appearanceTitle: string;
     lightMode: string;
     darkMode: string;
+    comfortableReadingTitle: string;
+    comfortableReadingDesc: string;
+    comfortableReadingOn: string;
+    comfortableReadingOff: string;
     offlineTitle: string;
     offlineDesc: string;
     offlineSavedCount: string;
@@ -116,6 +130,8 @@ export interface UIStrings {
     sec3Title: string;
     sec4Title: string;
     sec5Title: string;
+    comfortableReadingBtn: string;
+    comfortableReadingActiveHint: string;
   };
 }
 
@@ -130,14 +146,18 @@ export const UI_TRANSLATIONS: Record<AppLanguage, UIStrings> = {
       'جميع الحقوق محفوظة للأستاذ سامي مذكور. يُمنع منعاً باتاً نسخ هذا التطبيق أو تقليده أو إعادة نشره أو توزيعه بدون إذن صريح ومسبق.',
     footerCopyright: 'جميع الحقوق محفوظة © 2026 · الأستاذ سامي مذكور',
     footerAppTitle: 'دليل العناصر الإلكترونية',
+    footerSingleNotice:
+      'جميع الحقوق محفوظة © 2026 للأستاذ سامي مذكور — يُمنع نسخ أو تقليد أو إعادة نشر هذا التطبيق بدون إذن مسبق.',
     nav: {
       components: 'العناصر',
       componentsMobile: 'العناصر',
       circuit: 'محاكي الدوائر',
-      circuitMobile: 'المحاكاة',
+      circuitMobile: 'الدوائر',
+      breadboard: 'لوحة التجارب',
+      breadboardMobile: 'التجارب',
       projects: 'المشاريع',
       projectsMobile: 'المشاريع',
-      lab: 'القياس والحاسبات',
+      lab: 'المختبر والقياس',
       labMobile: 'المختبر',
       quiz: 'اختبار',
       quizMobile: 'اختبار',
@@ -156,16 +176,18 @@ export const UI_TRANSLATIONS: Record<AppLanguage, UIStrings> = {
       title: 'دليل العناصر الإلكترونية بالصور وطرق القياس',
       subtitle:
         'تعرّف على شكل كل عنصر إلكتروني، رمزه في المخططات، دوره الدقيق في الدوائر، وخطوات فحصه بالملتيميتر للتمييز بين السليم والتالف.',
-      statsLine: '38 عنصراً إلكترونياً · محاكي دوائر حي · مختبر ملتيميتر · مشاريع واختبارات · دفتر ملاحظات محلي',
+      statsLine: '45 عنصراً إلكترونياً · لوحة تجارب تفاعلية · محاكي دوائر · مختبر ملتيميتر · مشاريع وملاحظات محلية',
       searchPlaceholder: 'ابحث عن عنصر (مثلاً: دايود، مكثف، 7805)...',
       searchAria: 'ابحث في العناصر الإلكترونية',
-      saved: 'المحفوظة',
+      saved: 'المفضلة',
+      favoritesEmpty: 'لم تقم بحفظ أي عنصر في المفضلة بعد. اضغط على أيقونة الحفظ داخل أي بطاقة لإضافتها هنا.',
       noResults: 'لا توجد عناصر مطابقة لبحثك حالياً.',
       showAll: 'عرض جميع العناصر',
       symbolPrefix: 'الرمز',
       readMore: 'الشرح والقياس ←',
       saveAria: 'حفظ العنصر',
       unsaveAria: 'إزالة من المحفوظات',
+      resistorReaderBtn: 'قارئ ألوان المقاومات',
     },
     categories: {
       all: 'الكل',
@@ -176,7 +198,12 @@ export const UI_TRANSLATIONS: Record<AppLanguage, UIStrings> = {
     },
     labTabs: {
       multimeter: 'محاكي الملتيميتر',
-      calculators: 'حاسبة الألوان والليد',
+      breadboard: 'لوحة التجارب',
+      pcb: 'استكشاف PCB و SMD',
+      resistor: 'قارئ ألوان المقاومات',
+      capacitor: 'قارئ رموز المكثفات',
+      pinout: 'دليل أطراف العناصر',
+      calculators: 'حاسبة الليد والمكثف',
     },
     settings: {
       title: 'إعدادات التطبيق',
@@ -193,6 +220,10 @@ export const UI_TRANSLATIONS: Record<AppLanguage, UIStrings> = {
       appearanceTitle: 'مظهر الواجهة',
       lightMode: 'الوضع النهاري',
       darkMode: 'الوضع الليلي',
+      comfortableReadingTitle: 'وضع القراءة المريحة للمذاكرة',
+      comfortableReadingDesc: 'يكبّر حجم خط النصوص الطويلة ويوسّع تباعد الأسطر مع خلفية هادئة لتقليل إجهاد العين.',
+      comfortableReadingOn: 'مفعّل',
+      comfortableReadingOff: 'غير مفعّل',
       offlineTitle: 'العمل بدون إنترنت (Offline)',
       offlineDesc:
         'جميع بيانات العناصر الإلكترونية، محاكي الدوائر، الملتيميتر، الحاسبات، المشاريع، والاختبارات تعمل محلياً على جهازك دون الحاجة لاتصال بالإنترنت.',
@@ -253,6 +284,8 @@ export const UI_TRANSLATIONS: Record<AppLanguage, UIStrings> = {
       sec3Title: '03. الأنواع الشائعة',
       sec4Title: '04. تطبيقات عملية',
       sec5Title: '05. علامات التلف الظاهرية',
+      comfortableReadingBtn: 'القراءة المريحة',
+      comfortableReadingActiveHint: 'وضع القراءة المريحة مفعّل · خط أكبر وتباعد أسطر أوسع للمذاكرة دون إجهاد العين',
     },
   },
   fr: {
@@ -265,14 +298,18 @@ export const UI_TRANSLATIONS: Record<AppLanguage, UIStrings> = {
       'Tous droits réservés au Prof. Sami Madhkour. Toute copie, imitation ou redistribution sans son autorisation expresse est strictement interdite.',
     footerCopyright: 'Tous droits réservés © 2026 · Prof. Sami Madhkour',
     footerAppTitle: 'Guide des Composants Électroniques',
+    footerSingleNotice:
+      'Tous droits réservés © 2026 au Prof. Sami Madhkour — Toute copie ou redistribution sans autorisation préalable est interdite.',
     nav: {
       components: 'Composants',
-      componentsMobile: 'Composants',
+      componentsMobile: 'Pièces',
       circuit: 'Simulateur',
-      circuitMobile: 'Simulateur',
+      circuitMobile: 'Circuit',
+      breadboard: 'Platine',
+      breadboardMobile: 'Platine',
       projects: 'Projets',
       projectsMobile: 'Projets',
-      lab: 'Mesure & Outils',
+      lab: 'Labo & Mesure',
       labMobile: 'Labo',
       quiz: 'Quiz',
       quizMobile: 'Quiz',
@@ -291,16 +328,18 @@ export const UI_TRANSLATIONS: Record<AppLanguage, UIStrings> = {
       title: 'Guide Complet des Composants Électroniques et Mesures',
       subtitle:
         'Découvrez l’apparence de chaque composant, son symbole schématique, son rôle dans les circuits et la méthode exacte de test au multimètre.',
-      statsLine: '38 composants · Simulateur de circuits · Labo multimètre · Projets, Quiz & Notes locales',
+      statsLine: '45 composants · Platine d’essai interactive · Simulateur · Labo multimètre · Projets & Notes',
       searchPlaceholder: 'Rechercher un composant (ex : diode, condensateur, 7805)...',
       searchAria: 'Rechercher dans les composants électroniques',
       saved: 'Favoris',
+      favoritesEmpty: 'Aucun composant enregistré en favoris. Appuyez sur l’icône de signet d’une carte pour l’ajouter ici.',
       noResults: 'Aucun composant ne correspond à votre recherche.',
       showAll: 'Afficher tout',
       symbolPrefix: 'Symbole',
       readMore: 'Détails & Test →',
       saveAria: 'Enregistrer',
       unsaveAria: 'Retirer des favoris',
+      resistorReaderBtn: 'Lecteur de résistances',
     },
     categories: {
       all: 'Tous',
@@ -311,7 +350,12 @@ export const UI_TRANSLATIONS: Record<AppLanguage, UIStrings> = {
     },
     labTabs: {
       multimeter: 'Simulateur Multimètre',
-      calculators: 'Calculateurs Couleurs & LED',
+      breadboard: 'Platine d’essai',
+      pcb: 'Couches PCB & SMD',
+      resistor: 'Couleurs résistances',
+      capacitor: 'Codes condensateurs',
+      pinout: 'Brochage (Pinout)',
+      calculators: 'Calculs LED & Condos',
     },
     settings: {
       title: 'Paramètres de l’application',
@@ -328,6 +372,10 @@ export const UI_TRANSLATIONS: Record<AppLanguage, UIStrings> = {
       appearanceTitle: 'Apparence',
       lightMode: 'Mode clair',
       darkMode: 'Mode sombre',
+      comfortableReadingTitle: 'Mode Lecture Confortable',
+      comfortableReadingDesc: 'Agrandit le texte des fiches longues et augmente l’interligne avec un fond doux pour reposer les yeux.',
+      comfortableReadingOn: 'Activé',
+      comfortableReadingOff: 'Désactivé',
       offlineTitle: 'Mode Hors Ligne (Offline)',
       offlineDesc:
         'Tous les composants, le simulateur de circuits, le multimètre, les calculateurs, les projets et les quiz fonctionnent localement sans connexion Internet.',
@@ -388,6 +436,8 @@ export const UI_TRANSLATIONS: Record<AppLanguage, UIStrings> = {
       sec3Title: '03. Types courants',
       sec4Title: '04. Applications pratiques',
       sec5Title: '05. Signes visibles de panne',
+      comfortableReadingBtn: 'Lecture confortable',
+      comfortableReadingActiveHint: 'Lecture confortable activée · Police agrandie et interligne espacé pour étudier sans fatigue',
     },
   },
   en: {
@@ -400,14 +450,18 @@ export const UI_TRANSLATIONS: Record<AppLanguage, UIStrings> = {
       'All rights reserved to Prof. Sami Madhkour. Any unauthorized copying, cloning, imitation, or redistribution is strictly prohibited.',
     footerCopyright: 'All Rights Reserved © 2026 · Prof. Sami Madhkour',
     footerAppTitle: 'Electronic Components Guide',
+    footerSingleNotice:
+      'All rights reserved © 2026 to Prof. Sami Madhkour — Unauthorized copying or redistribution is strictly prohibited.',
     nav: {
       components: 'Components',
       componentsMobile: 'Parts',
       circuit: 'Circuit Sim',
-      circuitMobile: 'Simulator',
+      circuitMobile: 'Circuit',
+      breadboard: 'Breadboard',
+      breadboardMobile: 'Board',
       projects: 'Projects',
       projectsMobile: 'Projects',
-      lab: 'Meter & Tools',
+      lab: 'Lab & Tools',
       labMobile: 'Lab',
       quiz: 'Quiz',
       quizMobile: 'Quiz',
@@ -426,16 +480,18 @@ export const UI_TRANSLATIONS: Record<AppLanguage, UIStrings> = {
       title: 'Complete Electronic Components & Testing Guide',
       subtitle:
         'Explore every electronic component with visuals, schematic symbols, circuit roles, and step-by-step multimeter testing instructions.',
-      statsLine: '38 components · Live DC circuit sim · Multimeter lab · Projects, Quizzes & Local Notes',
+      statsLine: '45 components · Interactive breadboard · DC circuit sim · Multimeter lab · Projects & Notes',
       searchPlaceholder: 'Search component (e.g., diode, capacitor, 7805)...',
       searchAria: 'Search electronic components',
-      saved: 'Saved',
+      saved: 'Favorites',
+      favoritesEmpty: 'No favorite components saved yet. Tap the bookmark icon on any component card to save it here.',
       noResults: 'No components match your search.',
       showAll: 'Show all components',
       symbolPrefix: 'Symbol',
       readMore: 'Guide & Test →',
       saveAria: 'Save component',
       unsaveAria: 'Remove from saved',
+      resistorReaderBtn: 'Resistor Color Reader',
     },
     categories: {
       all: 'All',
@@ -446,7 +502,12 @@ export const UI_TRANSLATIONS: Record<AppLanguage, UIStrings> = {
     },
     labTabs: {
       multimeter: 'Multimeter Sim',
-      calculators: 'Color & LED Calculators',
+      breadboard: 'Breadboard',
+      pcb: 'PCB & SMD Lab',
+      resistor: 'Resistor Color Reader',
+      capacitor: 'Capacitor Codes',
+      pinout: 'Pinout Guide',
+      calculators: 'LED & Cap Tools',
     },
     settings: {
       title: 'App Settings',
@@ -463,6 +524,10 @@ export const UI_TRANSLATIONS: Record<AppLanguage, UIStrings> = {
       appearanceTitle: 'Appearance',
       lightMode: 'Light Mode',
       darkMode: 'Dark Mode',
+      comfortableReadingTitle: 'Comfortable Reading Mode',
+      comfortableReadingDesc: 'Enlarges long study text, increases line spacing, and softens page glare to reduce eye strain.',
+      comfortableReadingOn: 'Enabled',
+      comfortableReadingOff: 'Disabled',
       offlineTitle: 'Offline Support',
       offlineDesc:
         'All electronic component guides, circuit simulator, multimeter lab, calculators, projects, and quizzes work locally without Internet.',
@@ -523,6 +588,8 @@ export const UI_TRANSLATIONS: Record<AppLanguage, UIStrings> = {
       sec3Title: '03. Common Types',
       sec4Title: '04. Real-World Applications',
       sec5Title: '05. Visual Fault Signs',
+      comfortableReadingBtn: 'Comfort Reading',
+      comfortableReadingActiveHint: 'Comfortable Reading active · Larger text and relaxed line spacing for easier study',
     },
   },
 };

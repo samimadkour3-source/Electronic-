@@ -149,7 +149,7 @@ export const GlossaryText: React.FC<GlossaryTextProps> = ({ text, onSelectTerm }
               onSelectTerm(seg.term);
             }}
             title={pick('اضغط لعرض شرح المصطلح في القاموس', 'Cliquer pour voir la définition', 'Click to view glossary definition')}
-            className="inline border-b border-dotted border-sky-500/80 text-sky-700 dark:text-sky-300 font-semibold hover:bg-sky-50 dark:hover:bg-sky-950/60 hover:border-solid rounded-sm px-0.5 transition-colors cursor-pointer"
+            className="inline border-b border-dotted border-[#059669]/80 text-[#059669] dark:text-emerald-400 font-semibold hover:bg-emerald-50 dark:hover:bg-emerald-950/60 hover:border-solid rounded-sm px-0.5 transition-colors cursor-pointer"
           >
             {seg.value}
           </button>

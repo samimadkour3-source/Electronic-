@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import {
+  BookOpenText,
   CheckCircle2,
   DownloadCloud,
   Globe,
@@ -29,6 +30,8 @@ interface SettingsModalProps {
   onChangeFontScale: (scale: FontScale) => void;
   isDark: boolean;
   onToggleDark: () => void;
+  comfortableReading: boolean;
+  onToggleComfortableReading: () => void;
 }
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({
@@ -38,6 +41,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   onChangeFontScale,
   isDark,
   onToggleDark,
+  comfortableReading,
+  onToggleComfortableReading,
 }) => {
   const { lang, setLang, t, pick } = useLanguage();
   const [swActive, setSwActive] = useState<boolean>(false);
@@ -105,10 +110,15 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
         const assetUrls = new Set<string>([
           '/',
           '/index.html',
+          '/manifest.json',
+          '/icon-192.png?v=2',
+          '/icon-512.png?v=2',
           '/icon.svg',
           '/pwa-192x192.png',
           '/pwa-512x512.png',
+          '/pwa-maskable-512x512.png',
           '/apple-touch-icon.png',
+          '/splash-bg.png',
         ]);
 
         for (const comp of ELECTRONIC_COMPONENTS) {
@@ -182,15 +192,15 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
       onClick={onClose}
     >
       <div
-        className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-t-3xl sm:rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 sm:p-6 shadow-2xl"
+        className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-t-3xl sm:rounded-2xl border border-[#E2E8F0] dark:border-[#334155] bg-white dark:bg-[#1E293B] p-5 sm:p-6 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="mx-auto mb-4 h-1.5 w-10 rounded-full bg-slate-300 dark:bg-slate-700 sm:hidden" />
+        <div className="mx-auto mb-4 h-1.5 w-10 rounded-full bg-slate-300 dark:bg-slate-600 sm:hidden" />
 
         {/* Modal Header */}
-        <div className="flex items-center justify-between gap-4 pb-4 border-b border-slate-200 dark:border-slate-800">
+        <div className="flex items-center justify-between gap-4 pb-4 border-b border-[#E2E8F0] dark:border-[#334155]">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-sky-50 dark:bg-sky-950 text-sky-600 dark:text-sky-400">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-[#059669] dark:text-emerald-400">
               <Settings className="h-5 w-5" />
             </div>
             <div>
@@ -207,7 +217,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             type="button"
             onClick={onClose}
             aria-label={t.settings.closeAria}
-            className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-xl text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800"
+            className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-xl text-slate-500 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700"
           >
             <X className="h-5 w-5" />
           </button>
@@ -217,7 +227,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           {/* Section 0: Language Selector */}
           <section className="space-y-2.5">
             <div className="flex items-center gap-2 text-sm font-bold text-slate-900 dark:text-white">
-              <Globe className="h-4 w-4 text-sky-600 dark:text-sky-400" />
+              <Globe className="h-4 w-4 text-[#059669] dark:text-emerald-400" />
               <span>{t.settings.languageTitle}</span>
             </div>
             <div className="grid grid-cols-3 gap-2">
@@ -230,12 +240,12 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     onClick={() => setLang(opt.code)}
                     className={`inline-flex min-h-[46px] flex-col items-center justify-center rounded-xl border px-3 py-2 text-xs font-bold transition-colors ${
                       active
-                        ? 'border-sky-600 bg-sky-50 text-sky-700 dark:border-sky-500 dark:bg-sky-950/70 dark:text-sky-300'
-                        : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800'
+                        ? 'border-[#059669] bg-[#059669] text-white shadow-sm'
+                        : 'border-[#E2E8F0] dark:border-[#334155] bg-white dark:bg-[#0F172A]/70 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-[#0F172A]'
                     }`}
                   >
                     <span>{opt.nativeLabel}</span>
-                    <span className="font-mono-num text-[10px] opacity-60">{opt.shortLabel}</span>
+                    <span className={`font-mono-num text-[10px] ${active ? 'text-white/85' : 'opacity-60'}`}>{opt.shortLabel}</span>
                   </button>
                 );
               })}
@@ -243,13 +253,13 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           </section>
 
           {/* Section 1: Font Size Scaling */}
-          <section className="space-y-3 pt-4 border-t border-slate-200 dark:border-slate-800">
+          <section className="space-y-3 pt-4 border-t border-[#E2E8F0] dark:border-[#334155]">
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2 text-sm font-bold text-slate-900 dark:text-white">
-                <Type className="h-4 w-4 text-sky-600 dark:text-sky-400" />
+                <Type className="h-4 w-4 text-[#059669] dark:text-emerald-400" />
                 <span>{t.settings.fontSizeTitle}</span>
               </div>
-              <span className="text-xs font-bold text-sky-600 dark:text-sky-400 font-mono-num">
+              <span className="text-xs font-bold text-[#059669] dark:text-emerald-400 font-mono-num">
                 {fontScale}% · {t.settings.scaleLabels[fontScale]}
               </span>
             </div>
@@ -260,7 +270,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 type="button"
                 onClick={() => handleStep(-1)}
                 disabled={!canDecrease}
-                className="inline-flex min-h-[48px] items-center justify-center gap-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2 text-sm font-bold text-slate-800 dark:text-slate-100 transition-colors hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed"
+                className="inline-flex min-h-[48px] items-center justify-center gap-2 rounded-xl border border-[#E2E8F0] dark:border-[#334155] bg-slate-50 dark:bg-[#0F172A]/80 px-3 py-2 text-sm font-bold text-slate-800 dark:text-slate-100 transition-colors hover:bg-slate-100 dark:hover:bg-[#0F172A] disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 <Minus className="h-4 w-4" />
                 <span>{t.settings.decrease}</span>
@@ -270,7 +280,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 type="button"
                 onClick={() => onChangeFontScale(100)}
                 disabled={fontScale === 100}
-                className="inline-flex min-h-[48px] items-center justify-center gap-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-xs font-bold text-slate-700 dark:text-slate-200 transition-colors hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-50"
+                className="inline-flex min-h-[48px] items-center justify-center gap-1.5 rounded-xl border border-[#E2E8F0] dark:border-[#334155] bg-white dark:bg-[#0F172A]/60 px-3 py-2 text-xs font-bold text-slate-700 dark:text-slate-200 transition-colors hover:bg-slate-50 dark:hover:bg-[#0F172A] disabled:opacity-50"
               >
                 <RotateCcw className="h-3.5 w-3.5" />
                 <span>{t.settings.defaultBtn}</span>
@@ -280,7 +290,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 type="button"
                 onClick={() => handleStep(1)}
                 disabled={!canIncrease}
-                className="inline-flex min-h-[48px] items-center justify-center gap-2 rounded-xl bg-sky-600 px-3 py-2 text-sm font-bold text-white transition-colors hover:bg-sky-700 disabled:opacity-40 disabled:cursor-not-allowed"
+                className="inline-flex min-h-[48px] items-center justify-center gap-2 rounded-xl bg-[#059669] px-3 py-2 text-sm font-bold text-white transition-colors hover:bg-[#047857] disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 <Plus className="h-4 w-4" />
                 <span>{t.settings.increase}</span>
@@ -288,7 +298,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             </div>
 
             {/* Step Selector Bar */}
-            <div className="grid grid-cols-5 gap-1.5 rounded-xl bg-slate-100 dark:bg-slate-800/80 p-1">
+            <div className="grid grid-cols-5 gap-1.5 rounded-xl bg-slate-100 dark:bg-[#0F172A] p-1 border border-[#E2E8F0] dark:border-[#334155]">
               {FONT_SCALE_STEPS.map((step) => {
                 const active = fontScale === step;
                 return (
@@ -298,7 +308,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     onClick={() => onChangeFontScale(step)}
                     className={`min-h-[38px] rounded-lg text-xs font-bold font-mono-num transition-colors ${
                       active
-                        ? 'bg-white dark:bg-slate-900 text-sky-600 dark:text-sky-400 shadow-sm'
+                        ? 'bg-[#059669] text-white shadow-sm'
                         : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                     }`}
                   >
@@ -309,12 +319,12 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             </div>
 
             {/* Live Typography Preview */}
-            <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/60 p-3.5">
+            <div className="rounded-xl border border-[#E2E8F0] dark:border-[#334155] bg-[#F8FAFC] dark:bg-[#0F172A] p-3.5">
               <div className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">
                 {t.settings.previewLabel}
               </div>
               <div className="text-base font-bold text-slate-900 dark:text-white">
-                {t.settings.previewTitle} · <span className="font-mono-num text-sky-600 dark:text-sky-400" dir="ltr">10 kΩ</span>
+                {t.settings.previewTitle} · <span className="font-mono-num text-[#059669] dark:text-emerald-400" dir="ltr">10 kΩ</span>
               </div>
               <p className="mt-1 text-xs leading-relaxed text-slate-600 dark:text-slate-300">
                 {t.settings.previewDesc}
@@ -323,7 +333,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           </section>
 
           {/* Section 2: Appearance */}
-          <section className="space-y-2.5 pt-4 border-t border-slate-200 dark:border-slate-800">
+          <section className="space-y-2.5 pt-4 border-t border-[#E2E8F0] dark:border-[#334155]">
             <div className="text-sm font-bold text-slate-900 dark:text-white">
               {t.settings.appearanceTitle}
             </div>
@@ -335,11 +345,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 }}
                 className={`inline-flex min-h-[46px] items-center justify-center gap-2 rounded-xl border px-3 py-2 text-xs sm:text-sm font-bold transition-colors ${
                   !isDark
-                    ? 'border-sky-600 bg-sky-50 text-sky-700 dark:bg-sky-950 dark:text-sky-300'
-                    : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
+                    ? 'border-[#059669] bg-[#059669] text-white shadow-sm'
+                    : 'border-[#334155] bg-[#0F172A]/70 text-slate-300 hover:bg-[#0F172A]'
                 }`}
               >
-                <Sun className="h-4 w-4 text-amber-500" />
+                <Sun className={`h-4 w-4 ${!isDark ? 'text-white' : 'text-[#D97706] dark:text-amber-400'}`} />
                 <span>{t.settings.lightMode}</span>
               </button>
 
@@ -350,31 +360,71 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 }}
                 className={`inline-flex min-h-[46px] items-center justify-center gap-2 rounded-xl border px-3 py-2 text-xs sm:text-sm font-bold transition-colors ${
                   isDark
-                    ? 'border-sky-500 bg-sky-950/70 text-sky-300'
-                    : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
+                    ? 'border-[#059669] bg-[#059669] text-white shadow-sm'
+                    : 'border-[#E2E8F0] bg-white text-slate-600 hover:bg-slate-50'
                 }`}
               >
-                <Moon className="h-4 w-4 text-sky-400" />
+                <Moon className={`h-4 w-4 ${isDark ? 'text-white' : 'text-[#059669] dark:text-emerald-400'}`} />
                 <span>{t.settings.darkMode}</span>
               </button>
             </div>
+
+            {/* Comfortable Reading Mode Toggle */}
+            <button
+              type="button"
+              role="switch"
+              aria-checked={comfortableReading}
+              onClick={onToggleComfortableReading}
+              className={`mt-2 flex w-full min-h-[54px] items-center justify-between gap-3 rounded-xl border p-3.5 text-start transition-colors ${
+                comfortableReading
+                  ? 'border-[#059669]/70 bg-emerald-50/70 dark:border-emerald-600 dark:bg-emerald-950/35'
+                  : 'border-[#E2E8F0] dark:border-[#334155] bg-[#F8FAFC] dark:bg-[#0F172A]/70 hover:bg-slate-100 dark:hover:bg-[#0F172A]'
+              }`}
+            >
+              <div className="flex items-start gap-2.5">
+                <BookOpenText
+                  className={`h-5 w-5 shrink-0 mt-0.5 ${
+                    comfortableReading
+                      ? 'text-[#059669] dark:text-emerald-400'
+                      : 'text-slate-500 dark:text-slate-400'
+                  }`}
+                />
+                <div>
+                  <div className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">
+                    {t.settings.comfortableReadingTitle}
+                  </div>
+                  <p className="mt-0.5 text-xs leading-relaxed text-slate-600 dark:text-slate-400">
+                    {t.settings.comfortableReadingDesc}
+                  </p>
+                </div>
+              </div>
+              <span
+                className={`text-xs font-bold whitespace-nowrap shrink-0 ${
+                  comfortableReading
+                    ? 'text-[#059669] dark:text-emerald-300'
+                    : 'text-slate-500 dark:text-slate-400'
+                }`}
+              >
+                {comfortableReading ? t.settings.comfortableReadingOn : t.settings.comfortableReadingOff}
+              </span>
+            </button>
           </section>
 
           {/* Section 3: Offline Readiness & Asset Caching */}
-          <section className="space-y-3 pt-4 border-t border-slate-200 dark:border-slate-800">
+          <section className="space-y-3 pt-4 border-t border-[#E2E8F0] dark:border-[#334155]">
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2 text-sm font-bold text-slate-900 dark:text-white">
-                <WifiOff className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                <WifiOff className="h-4 w-4 text-[#059669] dark:text-emerald-400" />
                 <span>{t.settings.offlineTitle}</span>
               </div>
-              <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 font-mono-num">
+              <span className="text-xs font-semibold text-[#059669] dark:text-emerald-400 font-mono-num">
                 {cachedCount > 0 ? `${cachedCount} ${t.settings.offlineSavedCount}` : swActive ? t.settings.offlineReady : t.settings.offlineLocal}
               </span>
             </div>
 
-            <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/60 p-3.5 space-y-2.5">
+            <div className="rounded-xl border border-[#E2E8F0] dark:border-[#334155] bg-[#F8FAFC] dark:bg-[#0F172A] p-3.5 space-y-2.5">
               <div className="flex items-start gap-2.5 text-xs leading-relaxed text-slate-600 dark:text-slate-300">
-                <CheckCircle2 className="h-4 w-4 shrink-0 mt-0.5 text-emerald-600 dark:text-emerald-400" />
+                <CheckCircle2 className="h-4 w-4 shrink-0 mt-0.5 text-[#059669] dark:text-emerald-400" />
                 <span>{t.settings.offlineDesc}</span>
               </div>
 
@@ -382,7 +432,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 type="button"
                 onClick={handleSaveAllForOffline}
                 disabled={isCaching}
-                className="inline-flex w-full min-h-[44px] items-center justify-center gap-2 rounded-xl border border-emerald-600/30 bg-emerald-600/10 dark:bg-emerald-500/15 px-4 py-2 text-xs sm:text-sm font-bold text-emerald-700 dark:text-emerald-300 transition-colors hover:bg-emerald-600/20 disabled:opacity-60"
+                className="inline-flex w-full min-h-[44px] items-center justify-center gap-2 rounded-xl border border-[#059669]/30 bg-emerald-600/10 dark:bg-emerald-500/15 px-4 py-2 text-xs sm:text-sm font-bold text-[#059669] dark:text-emerald-300 transition-colors hover:bg-emerald-600/20 disabled:opacity-60"
               >
                 <DownloadCloud className="h-4 w-4 shrink-0" />
                 <span>
@@ -391,7 +441,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               </button>
 
               {cacheMessage && (
-                <p className="text-xs font-semibold text-emerald-700 dark:text-emerald-300">
+                <p className="text-xs font-semibold text-[#059669] dark:text-emerald-300">
                   {cacheMessage}
                 </p>
               )}
@@ -399,8 +449,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           </section>
 
           {/* Section 4: Intellectual Property & Anti-Copy Notice */}
-          <section className="rounded-xl border border-amber-200/80 dark:border-amber-900/60 bg-amber-50/70 dark:bg-amber-950/30 p-3.5 space-y-1.5">
-            <div className="flex items-center gap-2 text-xs font-bold text-amber-800 dark:text-amber-300">
+          <section className="rounded-xl border border-amber-300/80 dark:border-amber-800/70 bg-amber-50/70 dark:bg-amber-950/30 p-3.5 space-y-1.5">
+            <div className="flex items-center gap-2 text-xs font-bold text-[#D97706] dark:text-amber-400">
               <ShieldAlert className="h-4 w-4 shrink-0" />
               <span>{t.copyrightTitle}</span>
             </div>
@@ -410,12 +460,12 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           </section>
 
           {/* Footer Attribution */}
-          <div className="pt-3 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
-            <span>{t.creatorPrefix} <strong className="text-slate-800 dark:text-slate-200">{t.creatorName}</strong></span>
+          <div className="pt-3 border-t border-[#E2E8F0] dark:border-[#334155] flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+            <span>{t.creatorPrefix} <strong className="text-slate-800 dark:text-slate-100">{t.creatorName}</strong></span>
             <button
               type="button"
               onClick={onClose}
-              className="min-h-[40px] rounded-xl bg-slate-900 dark:bg-sky-600 px-5 py-2 text-xs font-bold text-white hover:bg-slate-800 dark:hover:bg-sky-500"
+              className="min-h-[40px] rounded-xl bg-[#059669] px-5 py-2 text-xs font-bold text-white hover:bg-[#047857] transition-colors"
             >
               {t.settings.done}
             </button>

@@ -1,7 +1,9 @@
 import React, { useMemo, useRef, useState } from 'react';
 import {
   AlertTriangle,
+  Calculator,
   CheckCircle2,
+  Minus,
   Play,
   Plus,
   RotateCw,
@@ -126,6 +128,162 @@ function formatResistance(ohms: number): string {
   return `${ohms}Ω`;
 }
 
+function formatExactResistance(ohms: number): string {
+  if (!Number.isFinite(ohms) || ohms <= 0) return '0Ω';
+  if (ohms >= 1000000) return `${Number((ohms / 1000000).toFixed(2))}MΩ`;
+  if (ohms >= 1000) return `${Number((ohms / 1000).toFixed(2))}kΩ`;
+  return `${Number(ohms.toFixed(2))}Ω`;
+}
+
+type NetworkTopology = 'series' | 'parallel' | 'unwired' | 'custom';
+
+interface ResistorNetworkAnalysis {
+  topology: NetworkTopology;
+  resistors: SimComponent[];
+  hasBattery: boolean;
+  batteryVoltage: number;
+  reqSeries: number;
+  reqParallel: number;
+  activeReq: number | null;
+  totalCurrentMa: number | null;
+  totalPowerMw: number | null;
+}
+
+const STANDARD_RESISTOR_VALUES = [100, 220, 330, 470, 680, 1000, 2000, 2200, 4700, 10000];
+
+function analyzeResistorNetwork(
+  components: SimComponent[],
+  wires: SimWire[]
+): ResistorNetworkAnalysis | null {
+  const resistors = components.filter((c) => c.type === 'resistor');
+  if (resistors.length < 2) return null;
+
+  const battery = components.find((c) => c.type === 'battery');
+  const batteryVoltage = battery ? battery.value : 9;
+
+  const reqSeries = resistors.reduce((sum, r) => sum + Math.max(1, r.value), 0);
+  const invSum = resistors.reduce((sum, r) => sum + 1 / Math.max(1, r.value), 0);
+  const reqParallel = invSum > 0 ? 1 / invSum : 0;
+
+  // Union-Find on terminals
+  const parent: Record<string, string> = {};
+  const find = (k: string): string => {
+    if (!parent[k]) parent[k] = k;
+    if (parent[k] !== k) parent[k] = find(parent[k]);
+    return parent[k];
+  };
+  const union = (a: string, b: string) => {
+    const ra = find(a);
+    const rb = find(b);
+    if (ra !== rb) parent[ra] = rb;
+  };
+
+  for (const c of components) {
+    find(`${c.id}:0`);
+    if (c.type !== 'ground') find(`${c.id}:1`);
+  }
+  for (const w of wires) {
+    union(`${w.fromCompId}:${w.fromPort}`, `${w.toCompId}:${w.toPort}`);
+  }
+
+  const resSet = new Set(resistors.map((r) => r.id));
+  const resTouchAnyWire = wires.some((w) => resSet.has(w.fromCompId) || resSet.has(w.toCompId));
+
+  let topology: NetworkTopology = 'custom';
+
+  if (!resTouchAnyWire) {
+    topology = 'unwired';
+  } else {
+    // Check Parallel: all resistors share the same unordered pair of distinct node roots
+    const first0 = find(`${resistors[0].id}:0`);
+    const first1 = find(`${resistors[0].id}:1`);
+    const allParallel =
+      first0 !== first1 &&
+      resistors.every((r) => {
+        const a = find(`${r.id}:0`);
+        const b = find(`${r.id}:1`);
+        return (a === first0 && b === first1) || (a === first1 && b === first0);
+      });
+
+    if (allParallel) {
+      topology = 'parallel';
+    } else {
+      // Check Series: simple connected chain of k resistors with k+1 distinct nodes
+      // and no non-resistor branches on internal degree-2 nodes
+      const nonResNodes = new Set<string>();
+      for (const c of components) {
+        if (c.type === 'resistor') continue;
+        nonResNodes.add(find(`${c.id}:0`));
+        if (c.type !== 'ground') nonResNodes.add(find(`${c.id}:1`));
+      }
+
+      const deg: Record<string, number> = {};
+      const adj: Record<string, string[]> = {};
+      let validEdges = true;
+      for (const r of resistors) {
+        const a = find(`${r.id}:0`);
+        const b = find(`${r.id}:1`);
+        if (a === b) {
+          validEdges = false;
+          break;
+        }
+        deg[a] = (deg[a] || 0) + 1;
+        deg[b] = (deg[b] || 0) + 1;
+        (adj[a] ||= []).push(b);
+        (adj[b] ||= []).push(a);
+      }
+
+      if (validEdges) {
+        const nodes = Object.keys(deg);
+        const deg1 = nodes.filter((n) => deg[n] === 1);
+        const deg2 = nodes.filter((n) => deg[n] === 2);
+        // BFS connectivity across resistor nodes
+        const visited = new Set<string>();
+        const queue = [nodes[0]];
+        visited.add(nodes[0]);
+        while (queue.length > 0) {
+          const cur = queue.shift()!;
+          for (const nxt of adj[cur] || []) {
+            if (!visited.has(nxt)) {
+              visited.add(nxt);
+              queue.push(nxt);
+            }
+          }
+        }
+        const isChain =
+          visited.size === nodes.length &&
+          nodes.length === resistors.length + 1 &&
+          deg1.length === 2 &&
+          deg2.length === resistors.length - 1 &&
+          deg2.every((n) => !nonResNodes.has(n));
+
+        if (isChain) {
+          topology = 'series';
+        }
+      }
+    }
+  }
+
+  const activeReq =
+    topology === 'series' ? reqSeries : topology === 'parallel' ? reqParallel : null;
+  const totalCurrentMa =
+    activeReq && battery ? (batteryVoltage / activeReq) * 1000 : null;
+  const totalPowerMw =
+    totalCurrentMa !== null ? batteryVoltage * totalCurrentMa : null;
+
+  return {
+    topology,
+    resistors,
+    hasBattery: Boolean(battery),
+    batteryVoltage,
+    reqSeries,
+    reqParallel,
+    activeReq,
+    totalCurrentMa,
+    totalPowerMw,
+  };
+}
+
 export const CircuitSimulator: React.FC = () => {
   const { pick } = useLanguage();
   const [components, setComponents] = useState<SimComponent[]>(PRESETS[0].components);
@@ -159,6 +317,11 @@ export const CircuitSimulator: React.FC = () => {
   const selectedComp = useMemo(
     () => components.find((c) => c.id === selectedId) || null,
     [components, selectedId]
+  );
+
+  const networkAnalysis = useMemo(
+    () => analyzeResistorNetwork(components, wires),
+    [components, wires]
   );
 
   const clientToSvgCoords = (clientX: number, clientY: number) => {
@@ -290,6 +453,152 @@ export const CircuitSimulator: React.FC = () => {
     setSelectedId(null);
   };
 
+  const autoConnectResistors = (
+    mode: 'series' | 'parallel',
+    countOverride?: number,
+    valuesOverride?: number[],
+    voltageOverride?: number
+  ) => {
+    const existingRes = components.filter((c) => c.type === 'resistor');
+    const existingBat = components.find((c) => c.type === 'battery');
+    const batV = voltageOverride ?? existingBat?.value ?? 9;
+    const defaultPad = [1000, 1000, 470, 2200, 330, 4700];
+
+    let targetValues: number[];
+    if (valuesOverride && valuesOverride.length >= 2) {
+      targetValues = valuesOverride;
+    } else if (countOverride !== undefined) {
+      const n = Math.max(2, Math.min(6, countOverride));
+      targetValues = Array.from({ length: n }, (_, i) =>
+        existingRes[i] ? existingRes[i].value : defaultPad[i % defaultPad.length]
+      );
+    } else if (existingRes.length >= 2) {
+      targetValues = existingRes.slice(0, 6).map((r) => r.value);
+    } else {
+      targetValues = [1000, 1000];
+    }
+
+    const n = targetValues.length;
+    const nextComponents: SimComponent[] = [
+      { id: 'bat1', type: 'battery', label: `${batV}V`, x: 95, y: 185, rotation: 90, value: batV },
+      { id: 'gnd1', type: 'ground', label: 'GND', x: 95, y: 310, rotation: 0, value: 0 },
+    ];
+    const nextWires: SimWire[] = [
+      { id: 'w_gnd', fromCompId: 'bat1', fromPort: 0, toCompId: 'gnd1', toPort: 0 },
+    ];
+
+    if (mode === 'series') {
+      const seriesSlots: Record<number, { x: number; y: number; rot: 0 | 90 | 180 | 270 }[]> = {
+        2: [
+          { x: 280, y: 95, rot: 0 },
+          { x: 470, y: 95, rot: 0 },
+        ],
+        3: [
+          { x: 225, y: 95, rot: 0 },
+          { x: 380, y: 95, rot: 0 },
+          { x: 535, y: 95, rot: 0 },
+        ],
+        4: [
+          { x: 235, y: 95, rot: 0 },
+          { x: 405, y: 95, rot: 0 },
+          { x: 545, y: 185, rot: 90 },
+          { x: 320, y: 265, rot: 180 },
+        ],
+      };
+
+      const slots =
+        seriesSlots[n] ||
+        targetValues.map((_, i) => {
+          const topCount = Math.ceil(n / 2);
+          if (i < topCount) {
+            const step = topCount > 1 ? 330 / (topCount - 1) : 0;
+            return { x: Math.round(215 + i * step), y: 95, rot: 0 as const };
+          }
+          const botIdx = i - topCount;
+          const botCount = n - topCount;
+          const step = botCount > 1 ? 330 / (botCount - 1) : 0;
+          return { x: Math.round(545 - botIdx * step), y: 265, rot: 180 as const };
+        });
+
+      targetValues.forEach((val, idx) => {
+        const slot = slots[idx];
+        nextComponents.push({
+          id: `r${idx + 1}`,
+          type: 'resistor',
+          label: `R${idx + 1} ${formatResistance(val)}`,
+          x: slot.x,
+          y: slot.y,
+          rotation: slot.rot,
+          value: val,
+        });
+      });
+
+      nextWires.push({ id: 'w_s0', fromCompId: 'bat1', fromPort: 1, toCompId: 'r1', toPort: 0 });
+      for (let i = 1; i < n; i++) {
+        nextWires.push({
+          id: `w_s${i}`,
+          fromCompId: `r${i}`,
+          fromPort: 1,
+          toCompId: `r${i + 1}`,
+          toPort: 0,
+        });
+      }
+      nextWires.push({
+        id: `w_s${n}`,
+        fromCompId: `r${n}`,
+        fromPort: 1,
+        toCompId: 'bat1',
+        toPort: 0,
+      });
+    } else {
+      const parallelXs: Record<number, number[]> = {
+        2: [265, 445],
+        3: [230, 385, 540],
+        4: [205, 325, 445, 565],
+      };
+      const xs =
+        parallelXs[n] ||
+        targetValues.map((_, i) => Math.round(190 + i * (390 / Math.max(1, n - 1))));
+
+      targetValues.forEach((val, idx) => {
+        nextComponents.push({
+          id: `r${idx + 1}`,
+          type: 'resistor',
+          label: `R${idx + 1} ${formatResistance(val)}`,
+          x: xs[idx],
+          y: 185,
+          rotation: 90,
+          value: val,
+        });
+      });
+
+      nextWires.push({ id: 'w_pt0', fromCompId: 'bat1', fromPort: 1, toCompId: 'r1', toPort: 0 });
+      nextWires.push({ id: 'w_pb0', fromCompId: 'bat1', fromPort: 0, toCompId: 'r1', toPort: 1 });
+      for (let i = 1; i < n; i++) {
+        nextWires.push({
+          id: `w_pt${i}`,
+          fromCompId: `r${i}`,
+          fromPort: 0,
+          toCompId: `r${i + 1}`,
+          toPort: 0,
+        });
+        nextWires.push({
+          id: `w_pb${i}`,
+          fromCompId: `r${i}`,
+          fromPort: 1,
+          toCompId: `r${i + 1}`,
+          toPort: 1,
+        });
+      }
+    }
+
+    setComponents(nextComponents);
+    setWires(nextWires);
+    setPendingWire(null);
+    setSelectedId('r1');
+    setIsRunning(true);
+  };
+
   return (
     <div className="space-y-5">
       {/* Header & Controls */}
@@ -311,8 +620,8 @@ export const CircuitSimulator: React.FC = () => {
           <button
             type="button"
             onClick={() => setIsRunning((r) => !r)}
-            className={`inline-flex min-h-[44px] items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold text-white transition-colors ${
-              isRunning ? 'bg-amber-600 hover:bg-amber-700' : 'bg-emerald-600 hover:bg-emerald-700'
+            className={`inline-flex min-h-[44px] items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold text-white transition-colors shadow-sm ${
+              isRunning ? 'bg-[#D97706] hover:bg-amber-700' : 'bg-[#059669] hover:bg-[#047857]'
             }`}
           >
             {isRunning ? <Square className="h-4 w-4" /> : <Play className="h-4 w-4" />}
@@ -322,7 +631,7 @@ export const CircuitSimulator: React.FC = () => {
           <button
             type="button"
             onClick={clearCanvas}
-            className="inline-flex min-h-[44px] items-center gap-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
+            className="inline-flex min-h-[44px] items-center gap-1.5 rounded-xl border border-[#E2E8F0] dark:border-[#334155] bg-white dark:bg-[#1E293B] px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-[#F8FAFC] dark:hover:bg-[#334155]/60 shadow-sm"
           >
             <Trash2 className="h-4 w-4" />
             <span>{pick('مسح اللوحة', 'Effacer', 'Clear Board')}</span>
@@ -340,15 +649,91 @@ export const CircuitSimulator: React.FC = () => {
             key={p.id}
             type="button"
             onClick={() => loadPreset(p.id)}
-            className="min-h-[40px] rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:border-sky-500 hover:text-sky-600 dark:hover:text-sky-400 transition-colors"
+            className="min-h-[40px] rounded-xl border border-[#E2E8F0] dark:border-[#334155] bg-white dark:bg-[#1E293B] px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:border-[#059669] hover:text-[#059669] dark:hover:text-emerald-400 transition-colors shadow-sm"
           >
             {pick(p.labelAr, p.labelFr, p.labelEn)}
           </button>
         ))}
       </div>
 
+      {/* Auto Series / Parallel Resistor Builder Strip */}
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#E2E8F0] dark:border-[#334155] bg-white dark:bg-[#1E293B] px-4 py-3 shadow-sm">
+        <div className="flex items-center gap-2">
+          <Calculator className="h-4 w-4 text-[#059669] dark:text-emerald-400 shrink-0" />
+          <span className="text-xs sm:text-sm font-bold text-slate-800 dark:text-white">
+            {pick(
+              'توصيل المقاومات تلقائياً:',
+              'Câblage automatique de résistances :',
+              'Auto-Connect Resistors:'
+            )}
+          </span>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={() => autoConnectResistors('series')}
+            className={`inline-flex min-h-[40px] items-center gap-2 rounded-xl border px-3.5 py-1.5 text-xs font-bold transition-colors whitespace-nowrap ${
+              networkAnalysis?.topology === 'series'
+                ? 'border-[#059669] bg-[#059669] text-white shadow-sm'
+                : 'border-[#E2E8F0] dark:border-[#334155] bg-[#F8FAFC] dark:bg-[#0F172A] text-slate-700 dark:text-slate-200 hover:border-[#059669] hover:text-[#059669] dark:hover:text-emerald-400'
+            }`}
+          >
+            <svg className="h-4 w-6 shrink-0" viewBox="0 0 28 14" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+              <path d="M1 7h3l1.5-3 2 6 2-6 1.5 3h6l1.5-3 2 6 2-6 1.5 3h3" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            <span>{pick('توالي تلقائي (Series)', 'Série auto (Series)', 'Auto Series')}</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => autoConnectResistors('parallel')}
+            className={`inline-flex min-h-[40px] items-center gap-2 rounded-xl border px-3.5 py-1.5 text-xs font-bold transition-colors whitespace-nowrap ${
+              networkAnalysis?.topology === 'parallel'
+                ? 'border-[#059669] bg-[#059669] text-white shadow-sm'
+                : 'border-[#E2E8F0] dark:border-[#334155] bg-[#F8FAFC] dark:bg-[#0F172A] text-slate-700 dark:text-slate-200 hover:border-[#059669] hover:text-[#059669] dark:hover:text-emerald-400'
+            }`}
+          >
+            <svg className="h-4 w-6 shrink-0" viewBox="0 0 28 16" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden="true">
+              <path d="M1 8h4M23 8h4M5 3.5v9M23 3.5v9M5 3.5h5l1-2 1.5 4 1.5-4 1 2h8M5 12.5h5l1-2 1.5 4 1.5-4 1 2h8" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            <span>{pick('توازي تلقائي (Parallel)', 'Parallèle auto (Parallel)', 'Auto Parallel')}</span>
+          </button>
+
+          <div className="flex items-center gap-1 rounded-xl bg-[#F8FAFC] dark:bg-[#0F172A] p-1 border border-[#E2E8F0] dark:border-[#334155]">
+            <span className="px-1.5 text-[11px] font-semibold text-slate-500 dark:text-slate-400 whitespace-nowrap">
+              {pick('العدد:', 'Nb :', 'Qty:')}
+            </span>
+            {[2, 3, 4].map((cnt) => {
+              const isCurrentCount =
+                (networkAnalysis?.topology === 'series' || networkAnalysis?.topology === 'parallel') &&
+                networkAnalysis.resistors.length === cnt;
+              return (
+                <button
+                  key={cnt}
+                  type="button"
+                  onClick={() =>
+                    autoConnectResistors(
+                      networkAnalysis?.topology === 'parallel' ? 'parallel' : 'series',
+                      cnt
+                    )
+                  }
+                  className={`min-h-[32px] min-w-[32px] rounded-lg px-2 text-xs font-bold font-mono-num transition-colors ${
+                    isCurrentCount
+                      ? 'bg-[#059669] text-white shadow-sm'
+                      : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
+                  }`}
+                >
+                  {cnt}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
       {/* Component Palette (Draggable + Tap-to-add for Android touch) */}
-      <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-3">
+      <div className="rounded-2xl border border-[#E2E8F0] dark:border-[#334155] bg-white dark:bg-[#1E293B] p-3 shadow-sm">
         <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-2">
           {pick('اسحب العنصر للوحة أو اضغط عليه لإضافته مباشرة:', 'Glissez un composant sur le plan ou touchez-le pour l’ajouter :', 'Drag a part onto the board or tap to add:')}
         </div>
@@ -362,9 +747,9 @@ export const CircuitSimulator: React.FC = () => {
                 e.dataTransfer.setData('application/sim-type', item.type);
               }}
               onClick={() => addComponent(item.type, 280 + Math.round(Math.random() * 100), 150 + Math.round(Math.random() * 80))}
-              className="inline-flex min-h-[44px] items-center gap-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 px-3.5 py-2 text-xs font-semibold text-slate-800 dark:text-slate-200 hover:border-sky-500 hover:bg-sky-50 dark:hover:bg-sky-950/50 whitespace-nowrap shrink-0 cursor-grab active:cursor-grabbing transition-colors"
+              className="inline-flex min-h-[44px] items-center gap-1.5 rounded-xl border border-[#E2E8F0] dark:border-[#334155] bg-[#F8FAFC] dark:bg-[#0F172A] px-3.5 py-2 text-xs font-semibold text-slate-800 dark:text-slate-200 hover:border-[#059669] hover:bg-emerald-50 dark:hover:bg-emerald-950/40 whitespace-nowrap shrink-0 cursor-grab active:cursor-grabbing transition-colors"
             >
-              <Plus className="h-3.5 w-3.5 text-sky-600 dark:text-sky-400" />
+              <Plus className="h-3.5 w-3.5 text-[#059669] dark:text-emerald-400" />
               <span>{pick(item.labelAr, item.labelFr, item.labelEn)}</span>
             </button>
           ))}
@@ -375,9 +760,9 @@ export const CircuitSimulator: React.FC = () => {
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-12 items-stretch">
         {/* Interactive Canvas */}
         <div className="lg:col-span-8 flex flex-col gap-3">
-          <div className="relative overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-950 shadow-sm">
+          <div className="relative overflow-hidden rounded-2xl border border-[#E2E8F0] dark:border-[#334155] bg-[#0F172A] shadow-sm">
             {pendingWire && (
-              <div className="bg-sky-600 px-3 py-1.5 text-xs font-semibold text-white text-center">
+              <div className="bg-[#059669] px-3 py-1.5 text-xs font-semibold text-white text-center">
                 {pick(
                   'اضغط الآن على الطرف الثاني لأي عنصر لإتمام التوصيل بالسلك (أو اضغط في أي مكان للإلغاء)',
                   'Cliquez maintenant sur une autre borne pour relier le fil (ou cliquez dans le vide pour annuler)',
@@ -466,7 +851,7 @@ export const CircuitSimulator: React.FC = () => {
                         height="64"
                         rx="10"
                         fill="none"
-                        stroke="#0EA5E9"
+                        stroke="#10B981"
                         strokeWidth="1.8"
                         strokeDasharray="4 3"
                       />
@@ -664,7 +1049,7 @@ export const CircuitSimulator: React.FC = () => {
                         r="5.5"
                         fill={
                           pendingWire?.compId === comp.id && pendingWire.port === 0
-                            ? '#38BDF8'
+                            ? '#10B981'
                             : comp.type === 'battery'
                             ? '#334155'
                             : '#0F172A'
@@ -698,7 +1083,7 @@ export const CircuitSimulator: React.FC = () => {
                           r="5.5"
                           fill={
                             pendingWire?.compId === comp.id && pendingWire.port === 1
-                              ? '#38BDF8'
+                              ? '#10B981'
                               : comp.type === 'battery'
                               ? '#DC2626'
                               : '#0F172A'
@@ -720,27 +1105,210 @@ export const CircuitSimulator: React.FC = () => {
 
           {/* Simulation Status Bar */}
           <div
-            className={`flex items-center gap-2.5 rounded-xl border px-4 py-3 text-xs sm:text-sm ${
+            className={`flex items-center gap-2.5 rounded-xl border px-4 py-3 text-xs sm:text-sm shadow-sm ${
               simResult.status === 'short_circuit'
                 ? 'border-rose-300 dark:border-rose-800 bg-rose-50 dark:bg-rose-950/40 text-rose-900 dark:text-rose-100'
-                : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200'
+                : 'border-[#E2E8F0] dark:border-[#334155] bg-white dark:bg-[#1E293B] text-slate-700 dark:text-slate-200'
             }`}
           >
             {simResult.status === 'short_circuit' ? (
               <AlertTriangle className="h-4 w-4 shrink-0 text-rose-600 dark:text-rose-400" />
             ) : (
-              <CheckCircle2 className="h-4 w-4 shrink-0 text-sky-600 dark:text-sky-400" />
+              <CheckCircle2 className="h-4 w-4 shrink-0 text-[#059669] dark:text-emerald-400" />
             )}
             <span>{pick(simResult.messageAr, simResult.messageFr, simResult.messageEn)}</span>
           </div>
+
+          {/* Instant Series / Parallel Calculation Panel */}
+          {networkAnalysis && (
+            <div className="rounded-2xl border border-[#E2E8F0] dark:border-[#334155] bg-white dark:bg-[#1E293B] p-4 space-y-3.5 shadow-sm">
+              <div className="flex flex-wrap items-center justify-between gap-2 pb-2.5 border-b border-[#E2E8F0] dark:border-[#334155]">
+                <div className="flex items-center gap-2">
+                  <Calculator className="h-4 w-4 text-[#059669] dark:text-emerald-400 shrink-0" />
+                  <h3 className="text-sm font-extrabold text-slate-900 dark:text-white">
+                    {networkAnalysis.topology === 'series'
+                      ? pick('تحليل التوصيل على التوالي (Series)', 'Analyse en Série (Series)', 'Series Resistor Analysis')
+                      : networkAnalysis.topology === 'parallel'
+                      ? pick('تحليل التوصيل على التوازي (Parallel)', 'Analyse en Parallèle (Parallel)', 'Parallel Resistor Analysis')
+                      : pick('حساب التوالي والتوازي الفوري للمقاومات', 'Calcul Série / Parallèle instantané', 'Instant Series / Parallel Calculator')}
+                  </h3>
+                </div>
+
+                <div className="flex items-center gap-1.5">
+                  {networkAnalysis.resistors.length > 2 && (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        autoConnectResistors(
+                          networkAnalysis.topology === 'parallel' ? 'parallel' : 'series',
+                          networkAnalysis.resistors.length - 1
+                        )
+                      }
+                      aria-label={pick('إزالة مقاومة', 'Retirer une résistance', 'Remove resistor')}
+                      className="inline-flex min-h-[34px] min-w-[34px] items-center justify-center rounded-lg border border-[#E2E8F0] dark:border-[#334155] bg-[#F8FAFC] dark:bg-[#0F172A] text-slate-700 dark:text-slate-200 hover:border-rose-400 hover:text-rose-600 transition-colors"
+                    >
+                      <Minus className="h-3.5 w-3.5" />
+                    </button>
+                  )}
+                  {networkAnalysis.resistors.length < 4 && (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        autoConnectResistors(
+                          networkAnalysis.topology === 'parallel' ? 'parallel' : 'series',
+                          networkAnalysis.resistors.length + 1
+                        )
+                      }
+                      className="inline-flex min-h-[34px] items-center gap-1 rounded-lg border border-[#E2E8F0] dark:border-[#334155] bg-[#F8FAFC] dark:bg-[#0F172A] px-2.5 py-1 text-xs font-bold text-[#059669] dark:text-emerald-400 hover:border-[#059669] transition-colors"
+                    >
+                      <Plus className="h-3.5 w-3.5" />
+                      <span>{pick('مقاومة', 'Résistance', 'Resistor')}</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Calculated Equivalent Values */}
+              {networkAnalysis.activeReq !== null ? (
+                <div className="space-y-2.5">
+                  <div className="grid grid-cols-3 gap-2 text-center">
+                    <div className="rounded-xl bg-[#F8FAFC] dark:bg-[#0F172A] border border-[#E2E8F0] dark:border-[#334155] p-2.5">
+                      <div className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+                        {pick('المقاومة المكافئة (Req)', 'Résistance éq. (Req)', 'Equivalent R (Req)')}
+                      </div>
+                      <div className="mt-0.5 font-mono-num text-base font-extrabold text-[#059669] dark:text-emerald-400" dir="ltr">
+                        {formatExactResistance(networkAnalysis.activeReq)}
+                      </div>
+                    </div>
+
+                    <div className="rounded-xl bg-[#F8FAFC] dark:bg-[#0F172A] border border-[#E2E8F0] dark:border-[#334155] p-2.5">
+                      <div className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+                        {pick('التيار الكلي (Itot)', 'Courant total', 'Total Current')}
+                      </div>
+                      <div className="mt-0.5 font-mono-num text-base font-extrabold text-slate-900 dark:text-white" dir="ltr">
+                        {networkAnalysis.totalCurrentMa !== null
+                          ? `${networkAnalysis.totalCurrentMa.toFixed(1)} mA`
+                          : '—'}
+                      </div>
+                    </div>
+
+                    <div className="rounded-xl bg-[#F8FAFC] dark:bg-[#0F172A] border border-[#E2E8F0] dark:border-[#334155] p-2.5">
+                      <div className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+                        {pick('القدرة الكلية (P)', 'Puissance tot.', 'Total Power')}
+                      </div>
+                      <div className="mt-0.5 font-mono-num text-base font-extrabold text-[#D97706] dark:text-amber-400" dir="ltr">
+                        {networkAnalysis.totalPowerMw !== null
+                          ? `${networkAnalysis.totalPowerMw.toFixed(1)} mW`
+                          : '—'}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Formula Summary */}
+                  <div
+                    className="rounded-xl bg-[#F8FAFC] dark:bg-[#0F172A] border border-[#E2E8F0] dark:border-[#334155] px-3 py-2 text-xs font-mono-num text-slate-700 dark:text-slate-300 overflow-x-auto whitespace-nowrap"
+                    dir="ltr"
+                  >
+                    {networkAnalysis.topology === 'series'
+                      ? `Req = ${networkAnalysis.resistors.map((r) => formatResistance(r.value)).join(' + ')} = ${formatExactResistance(networkAnalysis.reqSeries)}`
+                      : `Req = 1 / (${networkAnalysis.resistors.map((r) => `1/${formatResistance(r.value)}`).join(' + ')}) = ${formatExactResistance(networkAnalysis.reqParallel)}`}
+                  </div>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  <button
+                    type="button"
+                    onClick={() => autoConnectResistors('series')}
+                    className="rounded-xl border border-[#E2E8F0] dark:border-[#334155] bg-[#F8FAFC] dark:bg-[#0F172A] p-3 text-start hover:border-[#059669] transition-colors"
+                  >
+                    <div className="text-xs font-bold text-slate-700 dark:text-slate-200">
+                      {pick('توصيل على التوالي (اضغط للتطبيق)', 'Connecter en Série', 'Wire in Series')}
+                    </div>
+                    <div className="mt-1 font-mono-num text-sm font-extrabold text-[#059669] dark:text-emerald-400" dir="ltr">
+                      Req = {formatExactResistance(networkAnalysis.reqSeries)} · {((networkAnalysis.batteryVoltage / networkAnalysis.reqSeries) * 1000).toFixed(1)} mA
+                    </div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => autoConnectResistors('parallel')}
+                    className="rounded-xl border border-[#E2E8F0] dark:border-[#334155] bg-[#F8FAFC] dark:bg-[#0F172A] p-3 text-start hover:border-[#059669] transition-colors"
+                  >
+                    <div className="text-xs font-bold text-slate-700 dark:text-slate-200">
+                      {pick('توصيل على التوازي (اضغط للتطبيق)', 'Connecter en Parallèle', 'Wire in Parallel')}
+                    </div>
+                    <div className="mt-1 font-mono-num text-sm font-extrabold text-[#059669] dark:text-emerald-400" dir="ltr">
+                      Req = {formatExactResistance(networkAnalysis.reqParallel)} · {((networkAnalysis.batteryVoltage / networkAnalysis.reqParallel) * 1000).toFixed(1)} mA
+                    </div>
+                  </button>
+                </div>
+              )}
+
+              {/* Quick Per-Resistor Tuner + Individual Drops */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {networkAnalysis.resistors.map((r, idx) => {
+                  const rSim = isRunning ? simResult.components[r.id] : undefined;
+                  const isSel = selectedId === r.id;
+                  return (
+                    <div
+                      key={r.id}
+                      onClick={() => setSelectedId(r.id)}
+                      className={`flex items-center justify-between gap-2 rounded-xl border px-3 py-2 cursor-pointer transition-colors ${
+                        isSel
+                          ? 'border-[#059669] bg-emerald-50/50 dark:bg-emerald-950/25'
+                          : 'border-[#E2E8F0] dark:border-[#334155] bg-[#F8FAFC] dark:bg-[#0F172A]'
+                      }`}
+                    >
+                      <div className="min-w-0">
+                        <div className="text-xs font-bold text-slate-900 dark:text-white">
+                          R{idx + 1}
+                        </div>
+                        <div className="font-mono-num text-[11px] text-slate-500 dark:text-slate-400" dir="ltr">
+                          {rSim ? `${rSim.voltageDrop}V · ${rSim.currentMa}mA` : formatResistance(r.value)}
+                        </div>
+                      </div>
+
+                      <select
+                        value={STANDARD_RESISTOR_VALUES.includes(r.value) ? r.value : ''}
+                        onClick={(e) => e.stopPropagation()}
+                        onChange={(e) => {
+                          const nextVal = Number(e.target.value);
+                          if (!nextVal) return;
+                          setComponents((prev) =>
+                            prev.map((c) =>
+                              c.id === r.id
+                                ? { ...c, value: nextVal, label: `R${idx + 1} ${formatResistance(nextVal)}` }
+                                : c
+                            )
+                          );
+                        }}
+                        aria-label={`R${idx + 1}`}
+                        className="min-h-[34px] rounded-lg border border-[#E2E8F0] dark:border-[#334155] bg-white dark:bg-[#1E293B] px-2 text-xs font-bold font-mono-num text-slate-800 dark:text-slate-100 focus:border-[#059669] focus:outline-none"
+                        dir="ltr"
+                      >
+                        {!STANDARD_RESISTOR_VALUES.includes(r.value) && (
+                          <option value="">{formatResistance(r.value)}</option>
+                        )}
+                        {STANDARD_RESISTOR_VALUES.map((val) => (
+                          <option key={val} value={val}>
+                            {formatResistance(val)}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Right Panel: Selected Component Inspector & Live Readings */}
-        <div className="lg:col-span-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 flex flex-col justify-between gap-5">
+        <div className="lg:col-span-4 rounded-2xl border border-[#E2E8F0] dark:border-[#334155] bg-white dark:bg-[#1E293B] p-5 flex flex-col justify-between gap-5 shadow-sm">
           {selectedComp ? (
             <>
               <div className="space-y-4">
-                <div className="flex items-center justify-between gap-2 pb-3 border-b border-slate-200 dark:border-slate-800">
+                <div className="flex items-center justify-between gap-2 pb-3 border-b border-[#E2E8F0] dark:border-[#334155]">
                   <div>
                     <div className="text-xs text-slate-500 dark:text-slate-400">
                       {pick('العنصر المحدد', 'Composant sélectionné', 'Selected Component')}
@@ -755,7 +1323,7 @@ export const CircuitSimulator: React.FC = () => {
                         type="button"
                         onClick={rotateSelected}
                         aria-label={pick('تدوير العنصر', 'Pivoter', 'Rotate component')}
-                        className="flex min-h-[40px] min-w-[40px] items-center justify-center rounded-xl border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
+                        className="flex min-h-[40px] min-w-[40px] items-center justify-center rounded-xl border border-[#E2E8F0] dark:border-[#334155] text-slate-700 dark:text-slate-200 hover:bg-[#F8FAFC] dark:hover:bg-[#334155]/60"
                       >
                         <RotateCw className="h-4 w-4" />
                       </button>
@@ -773,10 +1341,10 @@ export const CircuitSimulator: React.FC = () => {
 
                 {/* Live Telemetry Readout */}
                 {isRunning && simResult.components[selectedComp.id] && (
-                  <div className="grid grid-cols-3 gap-2 rounded-xl bg-slate-50 dark:bg-slate-950 p-3 border border-slate-200 dark:border-slate-800 text-center">
+                  <div className="grid grid-cols-3 gap-2 rounded-xl bg-[#F8FAFC] dark:bg-[#0F172A] p-3 border border-[#E2E8F0] dark:border-[#334155] text-center">
                     <div>
                       <div className="text-[11px] text-slate-500">{pick('الجهد', 'Tension', 'Voltage')}</div>
-                      <div className="font-mono-num text-sm font-bold text-sky-600 dark:text-sky-400 mt-0.5" dir="ltr">
+                      <div className="font-mono-num text-sm font-bold text-[#059669] dark:text-emerald-400 mt-0.5" dir="ltr">
                         {simResult.components[selectedComp.id].voltageDrop} V
                       </div>
                     </div>
@@ -830,7 +1398,7 @@ export const CircuitSimulator: React.FC = () => {
                           prev.map((c) => (c.id === selectedComp.id ? { ...c, value: v, label: `${v}V` } : c))
                         );
                       }}
-                      className="w-full accent-sky-600 h-2"
+                      className="w-full accent-[#059669] h-2"
                     />
                   </div>
                 )}
@@ -859,8 +1427,8 @@ export const CircuitSimulator: React.FC = () => {
                           }
                           className={`min-h-[36px] rounded-lg font-mono-num text-[11px] font-semibold border ${
                             selectedComp.value === val
-                              ? 'border-sky-600 bg-sky-600 text-white'
-                              : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-slate-700 dark:text-slate-300'
+                              ? 'border-[#059669] bg-[#059669] text-white'
+                              : 'border-[#E2E8F0] dark:border-[#334155] bg-[#F8FAFC] dark:bg-[#0F172A] text-slate-700 dark:text-slate-300'
                           }`}
                         >
                           {formatResistance(val)}
@@ -882,7 +1450,7 @@ export const CircuitSimulator: React.FC = () => {
                           )
                         );
                       }}
-                      className="w-full accent-sky-600 h-2"
+                      className="w-full accent-[#059669] h-2"
                     />
                   </div>
                 )}
@@ -898,7 +1466,7 @@ export const CircuitSimulator: React.FC = () => {
                       )
                     }
                     className={`w-full min-h-[44px] rounded-xl font-semibold text-sm text-white transition-colors ${
-                      selectedComp.closed ? 'bg-sky-600 hover:bg-sky-700' : 'bg-slate-700 hover:bg-slate-600'
+                      selectedComp.closed ? 'bg-[#059669] hover:bg-[#047857]' : 'bg-slate-600 hover:bg-slate-700'
                     }`}
                   >
                     {selectedComp.closed
@@ -930,7 +1498,7 @@ export const CircuitSimulator: React.FC = () => {
                           prev.map((c) => (c.id === selectedComp.id ? { ...c, lightLevel: lvl } : c))
                         );
                       }}
-                      className="w-full accent-amber-500 h-2"
+                      className="w-full accent-[#D97706] h-2"
                     />
                   </div>
                 )}
@@ -960,7 +1528,7 @@ export const CircuitSimulator: React.FC = () => {
                           )
                         );
                       }}
-                      className="w-full accent-sky-600 h-2"
+                      className="w-full accent-[#059669] h-2"
                     />
                   </div>
                 )}
@@ -985,8 +1553,8 @@ export const CircuitSimulator: React.FC = () => {
                           }
                           className={`min-h-[36px] rounded-lg font-mono-num text-xs font-semibold border ${
                             selectedComp.value === vz
-                              ? 'border-sky-600 bg-sky-600 text-white'
-                              : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-slate-700 dark:text-slate-300'
+                              ? 'border-[#059669] bg-[#059669] text-white'
+                              : 'border-[#E2E8F0] dark:border-[#334155] bg-[#F8FAFC] dark:bg-[#0F172A] text-slate-700 dark:text-slate-300'
                           }`}
                         >
                           {vz}V
@@ -1016,8 +1584,8 @@ export const CircuitSimulator: React.FC = () => {
                           }
                           className={`min-h-[36px] rounded-lg font-mono-num text-xs font-semibold border ${
                             selectedComp.value === ma
-                              ? 'border-sky-600 bg-sky-600 text-white'
-                              : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-slate-700 dark:text-slate-300'
+                              ? 'border-[#059669] bg-[#059669] text-white'
+                              : 'border-[#E2E8F0] dark:border-[#334155] bg-[#F8FAFC] dark:bg-[#0F172A] text-slate-700 dark:text-slate-300'
                           }`}
                         >
                           {ma}mA
@@ -1028,7 +1596,7 @@ export const CircuitSimulator: React.FC = () => {
                 )}
               </div>
 
-              <div className="pt-3 border-t border-slate-200 dark:border-slate-800 text-xs leading-relaxed text-slate-500 dark:text-slate-400">
+              <div className="pt-3 border-t border-[#E2E8F0] dark:border-[#334155] text-xs leading-relaxed text-slate-500 dark:text-slate-400">
                 {pick(
                   'تلميح: لحذف أي سلك موصل، اضغط مباشرة على السلك الأزرق أو الرمادي فوق اللوحة.',
                   'Astuce : cliquez directement sur un fil bleu ou gris pour le supprimer.',

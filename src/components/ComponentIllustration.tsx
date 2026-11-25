@@ -528,6 +528,313 @@ export const ComponentIllustration: React.FC<ComponentIllustrationProps> = ({
         </svg>
       );
 
+    case 'zener':
+      return (
+        <svg viewBox="0 0 400 300" className={className} aria-label="دايود زينر Zener Diode">
+          <defs>
+            <linearGradient id="bg-zener" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#E2E8F0" />
+              <stop offset="100%" stopColor="#CBD5E1" />
+            </linearGradient>
+            <linearGradient id="zener-glass" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#FDBA74" />
+              <stop offset="45%" stopColor="#EA580C" />
+              <stop offset="100%" stopColor="#9A3412" />
+            </linearGradient>
+          </defs>
+          <rect width="400" height="300" fill="url(#bg-zener)" />
+          <ellipse cx="200" cy="216" rx="134" ry="14" fill="#475569" opacity="0.24" />
+          {/* Axial Tinned Copper Leads */}
+          <rect x="40" y="143" width="320" height="14" rx="5" fill="#94A3B8" stroke="#64748B" strokeWidth="1.5" />
+          {/* Orange DO-35 / DO-41 Glass Body */}
+          <rect x="118" y="110" width="164" height="80" rx="16" fill="url(#zener-glass)" stroke="#7C2D12" strokeWidth="2.5" />
+          {/* Inner Silicon Die / Copper Slug */}
+          <rect x="184" y="128" width="32" height="44" rx="4" fill="#78350F" opacity="0.55" />
+          {/* Black Cathode Band */}
+          <rect x="134" y="110" width="24" height="80" fill="#0F172A" />
+          {/* Glass Highlight */}
+          <rect x="164" y="118" width="104" height="10" rx="5" fill="#FFEDD5" opacity="0.45" />
+          <text x="218" y="146" textAnchor="middle" fill="#FFF7ED" className="text-[16px] font-mono font-extrabold">1N4733</text>
+          <text x="218" y="167" textAnchor="middle" fill="#FED7AA" className="text-[12px] font-mono font-bold">5.1V ZENER</text>
+          <text x="146" y="96" textAnchor="middle" fill="#0F172A" className="text-[13px] font-mono font-bold">K (-)</text>
+          <text x="262" y="96" textAnchor="middle" fill="#475569" className="text-[13px] font-mono font-bold">A (+)</text>
+        </svg>
+      );
+
+    case 'igbt':
+      return (
+        <svg viewBox="0 0 400 300" className={className} aria-label="ترانزستور IGBT للقدرة العالية">
+          <defs>
+            <linearGradient id="bg-igbt" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#E2E8F0" />
+              <stop offset="100%" stopColor="#CBD5E1" />
+            </linearGradient>
+          </defs>
+          <rect width="400" height="300" fill="url(#bg-igbt)" />
+          <ellipse cx="200" cy="252" rx="86" ry="12" fill="#475569" opacity="0.24" />
+          {/* 3 Heavy Leads */}
+          <rect x="150" y="180" width="12" height="68" rx="2" fill="#94A3B8" stroke="#64748B" strokeWidth="1.2" />
+          <rect x="194" y="180" width="12" height="68" rx="2" fill="#94A3B8" stroke="#64748B" strokeWidth="1.2" />
+          <rect x="238" y="180" width="12" height="68" rx="2" fill="#94A3B8" stroke="#64748B" strokeWidth="1.2" />
+          {/* TO-247 Top Copper/Aluminum Tab */}
+          <rect x="140" y="42" width="120" height="44" rx="5" fill="#CBD5E1" stroke="#64748B" strokeWidth="2.5" />
+          <circle cx="200" cy="64" r="14" fill="#E2E8F0" stroke="#475569" strokeWidth="2.5" />
+          {/* Epoxy Body */}
+          <rect x="132" y="74" width="136" height="108" rx="6" fill="#0F172A" stroke="#020617" strokeWidth="2.5" />
+          <rect x="140" y="80" width="120" height="5" fill="#334155" />
+          <text x="200" y="122" textAnchor="middle" fill="#F8FAFC" className="text-[17px] font-mono font-extrabold">FGA25N120</text>
+          <text x="200" y="144" textAnchor="middle" fill="#10B981" className="text-[12px] font-mono font-bold">IGBT 1200V 25A</text>
+          <text x="200" y="164" textAnchor="middle" fill="#94A3B8" className="text-[10px] font-mono">TO-247 POWER</text>
+          <text x="156" y="226" textAnchor="middle" fill="#0F172A" className="text-[13px] font-mono font-bold">G</text>
+          <text x="200" y="226" textAnchor="middle" fill="#0F172A" className="text-[13px] font-mono font-bold">C</text>
+          <text x="244" y="226" textAnchor="middle" fill="#0F172A" className="text-[13px] font-mono font-bold">E</text>
+        </svg>
+      );
+
+    case 'dual_schottky':
+      return (
+        <svg viewBox="0 0 400 300" className={className} aria-label="الدايود شوتكي المزدوج MBR20100CT">
+          <defs>
+            <linearGradient id="bg-dsch" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#E2E8F0" />
+              <stop offset="100%" stopColor="#CBD5E1" />
+            </linearGradient>
+          </defs>
+          <rect width="400" height="300" fill="url(#bg-dsch)" />
+          <ellipse cx="200" cy="248" rx="80" ry="12" fill="#475569" opacity="0.24" />
+          {/* 3 Leads */}
+          <rect x="154" y="178" width="11" height="66" rx="2" fill="#94A3B8" />
+          <rect x="194.5" y="178" width="11" height="66" rx="2" fill="#94A3B8" />
+          <rect x="235" y="178" width="11" height="66" rx="2" fill="#94A3B8" />
+          {/* Metal Tab */}
+          <rect x="146" y="46" width="108" height="44" rx="4" fill="#CBD5E1" stroke="#64748B" strokeWidth="2.5" />
+          <circle cx="200" cy="66" r="13" fill="#E2E8F0" stroke="#64748B" strokeWidth="2.5" />
+          {/* TO-220 Body */}
+          <rect x="140" y="88" width="120" height="92" rx="5" fill="#1E293B" stroke="#0F172A" strokeWidth="2.5" />
+          <text x="200" y="114" textAnchor="middle" fill="#F8FAFC" className="text-[15px] font-mono font-extrabold">MBR20100CT</text>
+          {/* Mini Common-Cathode Symbol Printed on Package */}
+          <line x1="166" y1="142" x2="234" y2="142" stroke="#D97706" strokeWidth="2" />
+          <polygon points="175,134 175,150 189,142" fill="#D97706" />
+          <polygon points="225,134 225,150 211,142" fill="#D97706" />
+          <line x1="191" y1="133" x2="191" y2="151" stroke="#FBBF24" strokeWidth="2.2" />
+          <line x1="209" y1="133" x2="209" y2="151" stroke="#FBBF24" strokeWidth="2.2" />
+          <line x1="200" y1="142" x2="200" y2="158" stroke="#34D399" strokeWidth="2.2" />
+          <text x="200" y="172" textAnchor="middle" fill="#94A3B8" className="text-[10px] font-mono">20A 100V DUAL</text>
+          <text x="160" y="220" textAnchor="middle" fill="#0F172A" className="text-[12px] font-mono font-bold">A1</text>
+          <text x="200" y="220" textAnchor="middle" fill="#059669" className="text-[12px] font-mono font-bold">K</text>
+          <text x="240" y="220" textAnchor="middle" fill="#0F172A" className="text-[12px] font-mono font-bold">A2</text>
+        </svg>
+      );
+
+    case 'ultrasonic_hcsr04':
+      return (
+        <svg viewBox="0 0 400 300" className={className} aria-label="حساس المسافة فوق الصوتي HC-SR04">
+          <defs>
+            <linearGradient id="bg-hcsr04" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#E2E8F0" />
+              <stop offset="100%" stopColor="#CBD5E1" />
+            </linearGradient>
+            <radialGradient id="mesh-can" cx="40%" cy="35%" r="65%">
+              <stop offset="0%" stopColor="#F8FAFC" />
+              <stop offset="70%" stopColor="#94A3B8" />
+              <stop offset="100%" stopColor="#475569" />
+            </radialGradient>
+          </defs>
+          <rect width="400" height="300" fill="url(#bg-hcsr04)" />
+          <ellipse cx="200" cy="248" rx="130" ry="12" fill="#475569" opacity="0.22" />
+          {/* 4 Header Pins */}
+          {[164, 188, 212, 236].map((x) => (
+            <rect key={x} x={x - 3} y="198" width="6" height="44" rx="2" fill="#FBBF24" stroke="#B45309" strokeWidth="1" />
+          ))}
+          {/* Blue PCB */}
+          <rect x="64" y="78" width="272" height="122" rx="10" fill="#1D4ED8" stroke="#1E3A8A" strokeWidth="3" />
+          {/* Corner Mounting Holes */}
+          {[[78, 92], [322, 92], [78, 186], [322, 186]].map(([cx, cy], idx) => (
+            <circle key={idx} cx={cx} cy={cy} r="6" fill="#E2E8F0" stroke="#FBBF24" strokeWidth="2" />
+          ))}
+          {/* 4MHz Quartz Crystal Between Transducers */}
+          <rect x="180" y="88" width="40" height="18" rx="6" fill="#CBD5E1" stroke="#475569" strokeWidth="1.5" />
+          {/* Left & Right Ultrasonic Metal Transducer Cans */}
+          <circle cx="122" cy="138" r="44" fill="url(#mesh-can)" stroke="#334155" strokeWidth="3" />
+          <circle cx="122" cy="138" r="32" fill="#1E293B" stroke="#64748B" strokeWidth="2" />
+          <circle cx="122" cy="138" r="14" fill="#475569" />
+          <circle cx="278" cy="138" r="44" fill="url(#mesh-can)" stroke="#334155" strokeWidth="3" />
+          <circle cx="278" cy="138" r="32" fill="#1E293B" stroke="#64748B" strokeWidth="2" />
+          <circle cx="278" cy="138" r="14" fill="#475569" />
+          {/* Labels */}
+          <text x="122" y="192" textAnchor="middle" fill="#FFFFFF" className="text-[11px] font-mono font-bold">T</text>
+          <text x="278" y="192" textAnchor="middle" fill="#FFFFFF" className="text-[11px] font-mono font-bold">R</text>
+          <text x="200" y="144" textAnchor="middle" fill="#FFFFFF" className="text-[12px] font-mono font-extrabold">HC-SR04</text>
+          <text x="164" y="256" textAnchor="middle" fill="#0F172A" className="text-[9px] font-mono font-bold">VCC</text>
+          <text x="188" y="256" textAnchor="middle" fill="#0F172A" className="text-[9px] font-mono font-bold">Trig</text>
+          <text x="212" y="256" textAnchor="middle" fill="#0F172A" className="text-[9px] font-mono font-bold">Echo</text>
+          <text x="236" y="256" textAnchor="middle" fill="#0F172A" className="text-[9px] font-mono font-bold">GND</text>
+        </svg>
+      );
+
+    case 'dht_sensor':
+      return (
+        <svg viewBox="0 0 400 300" className={className} aria-label="حساس الحرارة والرطوبة DHT11 و DHT22">
+          <defs>
+            <linearGradient id="bg-dht" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#E2E8F0" />
+              <stop offset="100%" stopColor="#CBD5E1" />
+            </linearGradient>
+          </defs>
+          <rect width="400" height="300" fill="url(#bg-dht)" />
+          <ellipse cx="145" cy="248" rx="68" ry="11" fill="#475569" opacity="0.22" />
+          <ellipse cx="268" cy="248" rx="62" ry="11" fill="#475569" opacity="0.22" />
+
+          {/* Left: DHT11 Classic Blue Grid Sensor */}
+          {[112, 134, 156, 178].map((x) => (
+            <rect key={x} x={x - 3} y="182" width="6" height="58" rx="2" fill="#94A3B8" />
+          ))}
+          <rect x="92" y="64" width="106" height="122" rx="8" fill="#0284C7" stroke="#0369A1" strokeWidth="3" />
+          {/* Ventilation Grid Slots */}
+          {[78, 98, 118].map((y) => (
+            <g key={y}>
+              <rect x="104" y={y} width="24" height="12" rx="2" fill="#0F172A" opacity="0.7" />
+              <rect x="133" y={y} width="24" height="12" rx="2" fill="#0F172A" opacity="0.7" />
+              <rect x="162" y={y} width="24" height="12" rx="2" fill="#0F172A" opacity="0.7" />
+            </g>
+          ))}
+          <text x="145" y="160" textAnchor="middle" fill="#FFFFFF" className="text-[14px] font-mono font-extrabold">DHT11</text>
+          <text x="145" y="176" textAnchor="middle" fill="#BAE6FD" className="text-[10px] font-mono">0–50°C</text>
+
+          {/* Right: DHT22 White High-Precision Sensor */}
+          {[236, 258, 280, 302].map((x) => (
+            <rect key={x} x={x - 3} y="190" width="6" height="50" rx="2" fill="#94A3B8" />
+          ))}
+          <rect x="218" y="54" width="100" height="138" rx="8" fill="#F8FAFC" stroke="#94A3B8" strokeWidth="2.5" />
+          <circle cx="268" cy="68" r="5" fill="#CBD5E1" stroke="#64748B" strokeWidth="1.5" />
+          {[84, 102, 120].map((y) => (
+            <g key={y}>
+              <rect x="230" y={y} width="22" height="11" rx="2" fill="#CBD5E1" />
+              <rect x="257" y={y} width="22" height="11" rx="2" fill="#CBD5E1" />
+              <rect x="284" y={y} width="22" height="11" rx="2" fill="#CBD5E1" />
+            </g>
+          ))}
+          <text x="268" y="162" textAnchor="middle" fill="#0F172A" className="text-[14px] font-mono font-extrabold">DHT22</text>
+          <text x="268" y="178" textAnchor="middle" fill="#059669" className="text-[10px] font-mono font-bold">-40..80°C</text>
+        </svg>
+      );
+
+    case 'pir_sensor':
+      return (
+        <svg viewBox="0 0 400 300" className={className} aria-label="حساس الحركة PIR HC-SR501">
+          <defs>
+            <linearGradient id="bg-pir" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#E2E8F0" />
+              <stop offset="100%" stopColor="#CBD5E1" />
+            </linearGradient>
+            <radialGradient id="fresnel" cx="42%" cy="35%" r="65%">
+              <stop offset="0%" stopColor="#FFFFFF" />
+              <stop offset="70%" stopColor="#E2E8F0" />
+              <stop offset="100%" stopColor="#94A3B8" />
+            </radialGradient>
+          </defs>
+          <rect width="400" height="300" fill="url(#bg-pir)" />
+          <ellipse cx="200" cy="248" rx="112" ry="12" fill="#475569" opacity="0.22" />
+          {/* 3 Bottom Header Pins */}
+          {[174, 200, 226].map((x) => (
+            <rect key={x} x={x - 3} y="206" width="6" height="34" rx="2" fill="#FBBF24" stroke="#B45309" strokeWidth="1" />
+          ))}
+          {/* Green PCB Base */}
+          <rect x="86" y="70" width="228" height="142" rx="10" fill="#15803D" stroke="#14532D" strokeWidth="3" />
+          {/* Mounting Holes */}
+          <circle cx="102" cy="86" r="6" fill="#E2E8F0" />
+          <circle cx="298" cy="86" r="6" fill="#E2E8F0" />
+          {/* Orange Adjustment Potentiometers (Sx & Tx) */}
+          <rect x="98" y="168" width="26" height="26" rx="4" fill="#EA580C" stroke="#9A3412" strokeWidth="2" />
+          <line x1="104" y1="181" x2="118" y2="181" stroke="#FED7AA" strokeWidth="2.5" />
+          <rect x="276" y="168" width="26" height="26" rx="4" fill="#EA580C" stroke="#9A3412" strokeWidth="2" />
+          <line x1="289" y1="174" x2="289" y2="188" stroke="#FED7AA" strokeWidth="2.5" />
+          {/* White Faceted Fresnel Dome Lens */}
+          <circle cx="200" cy="134" r="56" fill="url(#fresnel)" stroke="#CBD5E1" strokeWidth="3" />
+          <ellipse cx="200" cy="134" rx="38" ry="38" fill="none" stroke="#CBD5E1" strokeWidth="1.5" strokeDasharray="6 4" />
+          <ellipse cx="200" cy="134" rx="18" ry="18" fill="none" stroke="#CBD5E1" strokeWidth="1.5" />
+          <text x="174" y="254" textAnchor="middle" fill="#0F172A" className="text-[10px] font-mono font-bold">VCC</text>
+          <text x="200" y="254" textAnchor="middle" fill="#059669" className="text-[10px] font-mono font-bold">OUT</text>
+          <text x="226" y="254" textAnchor="middle" fill="#0F172A" className="text-[10px] font-mono font-bold">GND</text>
+          <text x="111" y="162" textAnchor="middle" fill="#FFFFFF" className="text-[9px] font-mono font-bold">Sx</text>
+          <text x="289" y="162" textAnchor="middle" fill="#FFFFFF" className="text-[9px] font-mono font-bold">Tx</text>
+        </svg>
+      );
+
+    case 'servo_sg90':
+      return (
+        <svg viewBox="0 0 400 300" className={className} aria-label="محرك السيرفو SG90">
+          <defs>
+            <linearGradient id="bg-servo" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#E2E8F0" />
+              <stop offset="100%" stopColor="#CBD5E1" />
+            </linearGradient>
+          </defs>
+          <rect width="400" height="300" fill="url(#bg-servo)" />
+          <ellipse cx="184" cy="246" rx="108" ry="12" fill="#475569" opacity="0.22" />
+          {/* 3-Wire Ribbon Cable + Dupont Plug */}
+          <path d="M236 198 C286 198, 294 218, 326 218" stroke="#78350F" strokeWidth="7" fill="none" strokeLinecap="round" />
+          <path d="M236 188 C288 188, 296 206, 326 206" stroke="#DC2626" strokeWidth="7" fill="none" strokeLinecap="round" />
+          <path d="M236 178 C290 178, 298 194, 326 194" stroke="#F59E0B" strokeWidth="7" fill="none" strokeLinecap="round" />
+          <rect x="322" y="186" width="24" height="38" rx="3" fill="#1E293B" stroke="#0F172A" strokeWidth="2" />
+          {/* Mounting Ears */}
+          <rect x="102" y="122" width="164" height="16" rx="4" fill="#0284C7" stroke="#0369A1" strokeWidth="2" />
+          {/* Blue Translucent SG90 Body */}
+          <rect x="128" y="88" width="112" height="136" rx="8" fill="#0EA5E9" stroke="#0369A1" strokeWidth="3" />
+          <rect x="136" y="142" width="96" height="58" rx="5" fill="#0369A1" opacity="0.45" />
+          {/* Top Gear Housing */}
+          <circle cx="164" cy="86" r="26" fill="#0284C7" stroke="#0369A1" strokeWidth="2.5" />
+          {/* White Servo Horn Arm */}
+          <rect x="150" y="54" width="96" height="22" rx="11" fill="#F8FAFC" stroke="#94A3B8" strokeWidth="2" />
+          <circle cx="164" cy="65" r="7" fill="#CBD5E1" stroke="#64748B" strokeWidth="2" />
+          {[192, 210, 228].map((x) => (
+            <circle key={x} cx={x} cy="65" r="2.5" fill="#64748B" />
+          ))}
+          <text x="184" y="168" textAnchor="middle" fill="#FFFFFF" className="text-[16px] font-mono font-extrabold">SG90</text>
+          <text x="184" y="186" textAnchor="middle" fill="#E0F2FE" className="text-[10px] font-mono">MICRO SERVO 9g</text>
+          <text x="334" y="242" textAnchor="middle" fill="#0F172A" className="text-[9px] font-mono font-bold">PWM · +5V · GND</text>
+        </svg>
+      );
+
+    case 'supercapacitor':
+      return (
+        <svg viewBox="0 0 400 300" className={className} aria-label="المكثف الفائق Supercapacitor">
+          <defs>
+            <linearGradient id="bg-scap" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#E2E8F0" />
+              <stop offset="100%" stopColor="#CBD5E1" />
+            </linearGradient>
+            <linearGradient id="scap-body" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%" stopColor="#047857" />
+              <stop offset="35%" stopColor="#10B981" />
+              <stop offset="75%" stopColor="#059669" />
+              <stop offset="100%" stopColor="#065F46" />
+            </linearGradient>
+          </defs>
+          <rect width="400" height="300" fill="url(#bg-scap)" />
+          <ellipse cx="200" cy="248" rx="84" ry="12" fill="#475569" opacity="0.24" />
+          {/* Heavy Leads (+ longer) */}
+          <rect x="166" y="192" width="10" height="54" rx="3" fill="#94A3B8" stroke="#64748B" strokeWidth="1.5" />
+          <rect x="224" y="192" width="10" height="44" rx="3" fill="#94A3B8" stroke="#64748B" strokeWidth="1.5" />
+          {/* Cylindrical Can */}
+          <rect x="134" y="64" width="132" height="132" rx="14" fill="url(#scap-body)" stroke="#064E3B" strokeWidth="3" />
+          {/* Metallic Top Rim */}
+          <ellipse cx="200" cy="68" rx="64" ry="12" fill="#CBD5E1" stroke="#64748B" strokeWidth="2" />
+          <line x1="176" y1="68" x2="224" y2="68" stroke="#64748B" strokeWidth="2" />
+          {/* White Negative Polarity Stripe on Right */}
+          <rect x="230" y="76" width="24" height="114" rx="3" fill="#F8FAFC" opacity="0.9" />
+          <text x="242" y="108" textAnchor="middle" fill="#0F172A" className="text-[16px] font-mono font-extrabold">-</text>
+          <text x="242" y="142" textAnchor="middle" fill="#0F172A" className="text-[16px] font-mono font-extrabold">-</text>
+          <text x="242" y="176" textAnchor="middle" fill="#0F172A" className="text-[16px] font-mono font-extrabold">-</text>
+          {/* Main Spec Label */}
+          <text x="184" y="122" textAnchor="middle" fill="#FFFFFF" className="text-[18px] font-mono font-extrabold">2.7V 10F</text>
+          <text x="184" y="144" textAnchor="middle" fill="#D1FAE5" className="text-[11px] font-mono font-bold">SUPERCAP</text>
+          <text x="184" y="162" textAnchor="middle" fill="#A7F3D0" className="text-[10px] font-mono">EDLC ENERGY</text>
+          <text x="171" y="256" textAnchor="middle" fill="#059669" className="text-[13px] font-mono font-bold">+</text>
+          <text x="229" y="252" textAnchor="middle" fill="#0F172A" className="text-[13px] font-mono font-bold">-</text>
+        </svg>
+      );
+
     case 'optocoupler':
     default:
       return (

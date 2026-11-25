@@ -28,7 +28,7 @@ export const ComponentImage: React.FC<ComponentImageProps> = ({
 
   if (hasError) {
     return (
-      <div className="flex h-full w-full flex-col items-center justify-center bg-slate-100 dark:bg-slate-800 p-4 text-slate-500 dark:text-slate-400">
+      <div className="flex h-full w-full flex-col items-center justify-center bg-slate-100 dark:bg-[#0F172A] p-4 text-slate-500 dark:text-slate-400">
         <SchematicSymbol componentId={componentId} className="h-20 w-36" />
         <span className="mt-2 text-xs font-medium">{alt}</span>
       </div>

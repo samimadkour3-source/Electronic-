@@ -9,14 +9,34 @@ import { getLocalizedProject } from '../i18n/dataTranslations';
 interface ProjectsViewProps {
   onOpenComponentById: (componentId: string) => void;
   onOpenCircuitSimulator: () => void;
+  selectedProjectId?: string | null;
+  onSelectProjectId?: (projectId: string | null) => void;
+  comfortableReading?: boolean;
 }
 
 export const ProjectsView: React.FC<ProjectsViewProps> = ({
   onOpenComponentById,
   onOpenCircuitSimulator,
+  selectedProjectId,
+  onSelectProjectId,
+  comfortableReading = false,
 }) => {
   const { lang, isRtl, pick } = useLanguage();
-  const [selectedProject, setSelectedProject] = useState<ElectronicProject | null>(null);
+  const [internalProjectId, setInternalProjectId] = useState<string | null>(null);
+
+  const activeProjectId =
+    selectedProjectId !== undefined ? selectedProjectId : internalProjectId;
+  const setActiveProjectId = (id: string | null) => {
+    if (onSelectProjectId) {
+      onSelectProjectId(id);
+    } else {
+      setInternalProjectId(id);
+    }
+  };
+
+  const selectedProject: ElectronicProject | null = activeProjectId
+    ? ELECTRONIC_PROJECTS.find((p) => p.id === activeProjectId) || null
+    : null;
 
   if (selectedProject) {
     const loc = getLocalizedProject(selectedProject, lang);
@@ -25,8 +45,8 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
         <div className="flex flex-wrap items-center justify-between gap-3">
           <button
             type="button"
-            onClick={() => setSelectedProject(null)}
-            className="inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+            onClick={() => setActiveProjectId(null)}
+            className="inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-[#E2E8F0] dark:border-[#334155] bg-white dark:bg-[#1E293B] px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors shadow-sm"
           >
             {isRtl ? <ArrowRight className="h-4 w-4" /> : <ArrowLeft className="h-4 w-4" />}
             <span>{pick('العودة لكل المشاريع', 'Retour aux projets', 'Back to all projects')}</span>
@@ -35,7 +55,7 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
           <button
             type="button"
             onClick={onOpenCircuitSimulator}
-            className="inline-flex min-h-[44px] items-center gap-2 rounded-xl bg-sky-600 px-4 py-2 text-xs font-semibold text-white hover:bg-sky-700 transition-colors"
+            className="inline-flex min-h-[44px] items-center gap-2 rounded-xl bg-[#059669] px-4 py-2 text-xs font-semibold text-white hover:bg-[#047857] transition-colors shadow-sm"
           >
             <span>{pick('جرّب المحاكاة في محاكي الدوائر', 'Tester dans le simulateur', 'Try in Circuit Simulator')}</span>
             <ExternalLink className="h-4 w-4" />
@@ -43,8 +63,8 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
         </div>
 
         {/* Project Hero Split: Breadboard Photo + Schematic */}
-        <section className="grid grid-cols-1 gap-6 lg:grid-cols-12 items-stretch pb-6 border-b border-slate-200 dark:border-slate-800">
-          <div className="lg:col-span-6 overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 aspect-[4/3]">
+        <section className="grid grid-cols-1 gap-6 lg:grid-cols-12 items-stretch pb-6 border-b border-[#E2E8F0] dark:border-[#334155]">
+          <div className="lg:col-span-6 overflow-hidden rounded-2xl border border-[#E2E8F0] dark:border-[#334155] bg-white dark:bg-[#1E293B] aspect-[4/3] shadow-sm">
             <ComponentImage
               src={selectedProject.imageUrl}
               alt={loc.title}
@@ -64,20 +84,20 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
                 {loc.title}
               </h2>
               {lang !== 'en' && (
-                <p className="mt-1 text-xs font-mono text-slate-500" dir="ltr">
+                <p className="mt-1 text-xs font-mono text-slate-500 dark:text-slate-400" dir="ltr">
                   {selectedProject.titleEn}
                 </p>
               )}
-              <p className="mt-3 text-sm sm:text-base leading-relaxed text-slate-700 dark:text-slate-300">
+              <p className={`mt-3 ${comfortableReading ? 'text-base sm:text-[18px] leading-[2] text-slate-800 dark:text-slate-200' : 'text-sm sm:text-base leading-relaxed text-slate-700 dark:text-slate-300'}`}>
                 {loc.summary}
               </p>
             </div>
 
-            <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4">
+            <div className="rounded-2xl border border-[#E2E8F0] dark:border-[#334155] bg-white dark:bg-[#1E293B] p-4 shadow-sm">
               <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-2">
                 {pick('مخطط الدائرة الهندسي (Schematic Diagram)', 'Schéma de principe (Schematic)', 'Circuit Schematic Diagram')}
               </div>
-              <div className="rounded-xl bg-slate-50 dark:bg-slate-950 p-2 text-slate-900 dark:text-slate-100">
+              <div className="rounded-xl bg-[#F8FAFC] dark:bg-[#0F172A] p-2 text-slate-900 dark:text-slate-100">
                 <ProjectSchematic projectId={selectedProject.id} className="w-full h-44 sm:h-48" />
               </div>
             </div>
@@ -85,29 +105,29 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
         </section>
 
         {/* How the Whole Circuit Works */}
-        <section className="pb-6 border-b border-slate-200 dark:border-slate-800">
-          <div className="flex items-center gap-2 text-sky-600 dark:text-sky-400 text-sm font-bold mb-2">
+        <section className="pb-6 border-b border-[#E2E8F0] dark:border-[#334155]">
+          <div className="flex items-center gap-2 text-[#D97706] dark:text-amber-400 text-sm font-bold mb-2">
             <Lightbulb className="h-4 w-4" />
-            <h3>{pick('01. كيف تعمل الدائرة ككل؟', '01. Comment fonctionne le circuit ?', '01. How the Full Circuit Works')}</h3>
+            <h3 className="text-[#059669] dark:text-emerald-400">{pick('01. كيف تعمل الدائرة ككل؟', '01. Comment fonctionne le circuit ?', '01. How the Full Circuit Works')}</h3>
           </div>
-          <p className="text-sm sm:text-base leading-relaxed text-slate-700 dark:text-slate-300">
+          <p className={comfortableReading ? 'text-base sm:text-[18px] leading-[2] max-w-[68ch] text-slate-800 dark:text-slate-200' : 'text-sm sm:text-base leading-relaxed text-slate-700 dark:text-slate-300'}>
             {loc.howCircuitWorks}
           </p>
         </section>
 
         {/* Required Components & Role of Each Component */}
-        <section className="pb-6 border-b border-slate-200 dark:border-slate-800">
-          <div className="flex items-center gap-2 text-sky-600 dark:text-sky-400 text-sm font-bold mb-4">
+        <section className="pb-6 border-b border-[#E2E8F0] dark:border-[#334155]">
+          <div className="flex items-center gap-2 text-[#059669] dark:text-emerald-400 text-sm font-bold mb-4">
             <Cpu className="h-4 w-4" />
             <h3>{pick('02. المكونات المطلوبة ودور كل عنصر في المشروع', '02. Composants requis et rôle de chacun', '02. Required Parts & Component Roles')}</h3>
           </div>
 
-          <div className="overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 divide-y divide-slate-200 dark:divide-slate-800">
+          <div className="overflow-hidden rounded-2xl border border-[#E2E8F0] dark:border-[#334155] bg-white dark:bg-[#1E293B] divide-y divide-[#E2E8F0] dark:divide-[#334155] shadow-sm">
             {loc.parts.map((part, idx) => (
               <div key={idx} className="grid grid-cols-1 sm:grid-cols-12 gap-2 sm:gap-4 p-4 items-center">
                 <div className="sm:col-span-4">
                   <div className="flex items-center gap-2">
-                    <span className="font-mono-num text-xs font-bold text-sky-600 dark:text-sky-400">
+                    <span className="font-mono-num text-xs font-bold text-[#059669] dark:text-emerald-400">
                       {part.qty}
                     </span>
                     <span className="text-sm font-bold text-slate-900 dark:text-white">
@@ -119,7 +139,7 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
                   </div>
                 </div>
 
-                <div className="sm:col-span-6 text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
+                <div className={`sm:col-span-6 ${comfortableReading ? 'text-base leading-[1.95] text-slate-800 dark:text-slate-200' : 'text-sm leading-relaxed text-slate-700 dark:text-slate-300'}`}>
                   {part.role}
                 </div>
 
@@ -128,7 +148,7 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
                     <button
                       type="button"
                       onClick={() => onOpenComponentById(part.componentRefId!)}
-                      className="min-h-[38px] text-xs font-semibold text-sky-600 dark:text-sky-400 hover:underline whitespace-nowrap"
+                      className="min-h-[38px] text-xs font-semibold text-[#059669] dark:text-emerald-400 hover:underline whitespace-nowrap"
                     >
                       {pick('شرح العنصر وقياسه ←', 'Voir fiche & test →', 'Guide & test →')}
                     </button>
@@ -141,18 +161,18 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
 
         {/* Assembly Steps */}
         <section className="space-y-4">
-          <div className="flex items-center gap-2 text-sky-600 dark:text-sky-400 text-sm font-bold">
+          <div className="flex items-center gap-2 text-[#059669] dark:text-emerald-400 text-sm font-bold">
             <Wrench className="h-4 w-4" />
             <h3>{pick('03. خطوات التجميع العملية على لوحة التجارب', '03. Étapes de montage sur platine d’essai', '03. Breadboard Assembly Steps')}</h3>
           </div>
 
-          <ol className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <ol className={`grid grid-cols-1 gap-3 ${comfortableReading ? '' : 'sm:grid-cols-2'}`}>
             {loc.assemblySteps.map((step, i) => (
               <li
                 key={i}
-                className="flex items-start gap-3 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 text-sm leading-relaxed text-slate-700 dark:text-slate-300"
+                className={`flex items-start gap-3 rounded-2xl border border-[#E2E8F0] dark:border-[#334155] bg-white dark:bg-[#1E293B] p-4 shadow-sm ${comfortableReading ? 'text-base leading-[1.95] text-slate-800 dark:text-slate-200' : 'text-sm leading-relaxed text-slate-700 dark:text-slate-300'}`}
               >
-                <span className="font-mono-num flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-800 text-xs font-bold text-slate-900 dark:text-white">
+                <span className="font-mono-num flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-slate-100 dark:bg-[#0F172A] text-xs font-bold text-slate-900 dark:text-white">
                   {i + 1}
                 </span>
                 <span>{step}</span>
@@ -160,8 +180,8 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
             ))}
           </ol>
 
-          <div className="flex items-start gap-3 rounded-2xl border border-emerald-200 dark:border-emerald-900 bg-emerald-50/70 dark:bg-emerald-950/40 p-4 text-sm text-emerald-950 dark:text-emerald-100">
-            <CheckCircle2 className="h-5 w-5 shrink-0 text-emerald-600 dark:text-emerald-400 mt-0.5" />
+          <div className="flex items-start gap-3 rounded-2xl border border-emerald-200 dark:border-emerald-800 bg-emerald-50/70 dark:bg-emerald-950/35 p-4 text-sm text-emerald-950 dark:text-emerald-100">
+            <CheckCircle2 className="h-5 w-5 shrink-0 text-[#059669] dark:text-emerald-400 mt-0.5" />
             <div>
               <span className="font-bold">{pick('نصيحة المعايرة والتشغيل: ', 'Conseil de mise au point : ', 'Tuning & Troubleshooting Tip: ')}</span>
               <span>{loc.troubleshootingTip}</span>
@@ -194,10 +214,10 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
             <button
               key={project.id}
               type="button"
-              onClick={() => setSelectedProject(project)}
-              className="group flex flex-col overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-start transition-transform hover:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-sky-600"
+              onClick={() => setActiveProjectId(project.id)}
+              className="group flex flex-col overflow-hidden rounded-2xl border border-[#E2E8F0] dark:border-[#334155] bg-white dark:bg-[#1E293B] text-start shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md hover:border-[#059669] dark:hover:border-emerald-500 focus-visible:outline-2 focus-visible:outline-[#059669]"
             >
-              <div className="aspect-[4/3] w-full overflow-hidden bg-slate-100 dark:bg-slate-800">
+              <div className="aspect-[4/3] w-full overflow-hidden bg-slate-100 dark:bg-[#0F172A]">
                 <ComponentImage
                   src={project.imageUrl}
                   alt={loc.title}
@@ -214,15 +234,15 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
                     <span aria-hidden="true">·</span>
                     <span>{project.parts.length} {pick('مكونات', 'composants', 'parts')}</span>
                   </div>
-                  <h3 className="mt-2 text-lg font-bold text-slate-900 dark:text-white group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors">
+                  <h3 className="mt-2 text-lg font-bold text-slate-900 dark:text-white group-hover:text-[#059669] dark:group-hover:text-emerald-400 transition-colors">
                     {loc.title}
                   </h3>
-                  <p className="mt-1.5 text-sm leading-relaxed text-slate-600 dark:text-slate-400 line-clamp-2">
+                  <p className="mt-1.5 text-sm leading-relaxed text-slate-600 dark:text-slate-300 line-clamp-2">
                     {loc.summary}
                   </p>
                 </div>
 
-                <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs font-semibold text-sky-600 dark:text-sky-400">
+                <div className="mt-4 pt-3 border-t border-slate-100 dark:border-[#334155] flex items-center justify-between text-xs font-semibold text-[#059669] dark:text-emerald-400">
                   <span>{pick('عرض المخطط وخطوات التجميع', 'Voir schéma & montage', 'View schematic & assembly')}</span>
                   <span>{isRtl ? '←' : '→'}</span>
                 </div>

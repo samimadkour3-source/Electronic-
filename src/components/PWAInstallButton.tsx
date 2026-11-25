@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Download, Smartphone, X } from 'lucide-react';
+import React, { useCallback, useEffect, useState } from 'react';
+import { Download, X } from 'lucide-react';
 import { usePWAInstall } from '../hooks/usePWAInstall';
 import { useLanguage } from '../i18n/LanguageContext';
 
@@ -7,6 +7,45 @@ export const PWAInstallButton: React.FC = () => {
   const { isInstallable, isInstalled, isIOS, install } = usePWAInstall();
   const { t } = useLanguage();
   const [showGuide, setShowGuide] = useState(false);
+
+  const openGuide = useCallback(() => {
+    try {
+      const base =
+        window.history.state && typeof window.history.state === 'object'
+          ? window.history.state
+          : {};
+      window.history.pushState({ ...base, __pwaGuide: true }, '');
+    } catch {
+      // Ignore history errors
+    }
+    setShowGuide(true);
+  }, []);
+
+  const closeGuide = useCallback(() => {
+    if (window.history.state?.__pwaGuide) {
+      window.history.back();
+    } else {
+      setShowGuide(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!showGuide) return;
+    const onPopState = (e: PopStateEvent) => {
+      if (!e.state?.__pwaGuide) {
+        setShowGuide(false);
+      }
+    };
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') closeGuide();
+    };
+    window.addEventListener('popstate', onPopState);
+    window.addEventListener('keydown', onKeyDown);
+    return () => {
+      window.removeEventListener('popstate', onPopState);
+      window.removeEventListener('keydown', onKeyDown);
+    };
+  }, [showGuide, closeGuide]);
 
   if (isInstalled) {
     return null;
@@ -16,7 +55,7 @@ export const PWAInstallButton: React.FC = () => {
     if (isInstallable) {
       await install();
     } else {
-      setShowGuide(true);
+      openGuide();
     }
   };
 
@@ -25,7 +64,7 @@ export const PWAInstallButton: React.FC = () => {
       <button
         type="button"
         onClick={handleClick}
-        className="inline-flex min-h-[40px] items-center gap-2 rounded-xl bg-sky-600 px-3.5 py-2 text-xs font-semibold text-white transition-colors hover:bg-sky-700 active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600 whitespace-nowrap shrink-0"
+        className="inline-flex min-h-[40px] items-center gap-2 rounded-xl bg-[#059669] px-3.5 py-2 text-xs font-semibold text-white transition-colors hover:bg-[#047857] active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#059669] whitespace-nowrap shrink-0"
       >
         <Download className="h-4 w-4 shrink-0" />
         <span>{t.pwa.installBtn}</span>
@@ -37,18 +76,22 @@ export const PWAInstallButton: React.FC = () => {
           role="dialog"
           aria-modal="true"
           aria-labelledby="pwa-install-title"
-          onClick={() => setShowGuide(false)}
+          onClick={closeGuide}
         >
           <div
-            className="w-full max-w-md rounded-t-3xl sm:rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-xl"
+            className="w-full max-w-md rounded-t-3xl sm:rounded-2xl border border-slate-200 dark:border-[#334155] bg-white dark:bg-[#1E293B] p-6 shadow-xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="mx-auto mb-4 h-1.5 w-10 rounded-full bg-slate-300 dark:bg-slate-700 sm:hidden" />
+            <div className="mx-auto mb-4 h-1.5 w-10 rounded-full bg-slate-300 dark:bg-slate-600 sm:hidden" />
             <div className="flex items-start justify-between gap-4">
               <div className="flex items-center gap-3">
-                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-sky-50 dark:bg-sky-950 text-sky-600 dark:text-sky-400">
-                  <Smartphone className="h-6 w-6" />
-                </div>
+                <img
+                  src="/icon-192.png?v=2"
+                  alt=""
+                  width={44}
+                  height={44}
+                  className="h-11 w-11 shrink-0 rounded-xl shadow-sm object-cover"
+                />
                 <div>
                   <h3 id="pwa-install-title" className="text-base font-bold text-slate-900 dark:text-white">
                     {t.pwa.modalTitle}
@@ -60,7 +103,7 @@ export const PWAInstallButton: React.FC = () => {
               </div>
               <button
                 type="button"
-                onClick={() => setShowGuide(false)}
+                onClick={closeGuide}
                 aria-label={t.settings.closeAria}
                 className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-xl text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800"
               >
@@ -86,8 +129,8 @@ export const PWAInstallButton: React.FC = () => {
 
             <button
               type="button"
-              onClick={() => setShowGuide(false)}
-              className="mt-6 w-full min-h-[44px] rounded-xl bg-slate-900 dark:bg-sky-600 py-2.5 text-sm font-semibold text-white hover:bg-slate-800 dark:hover:bg-sky-500 transition-colors"
+              onClick={closeGuide}
+              className="mt-6 w-full min-h-[44px] rounded-xl bg-[#059669] py-2.5 text-sm font-semibold text-white hover:bg-[#047857] transition-colors"
             >
               {t.pwa.gotIt}
             </button>

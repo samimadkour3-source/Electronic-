@@ -219,7 +219,7 @@ export const QuizView: React.FC = () => {
     return (
       <div className="mx-auto max-w-4xl space-y-6">
         {/* Header & Rank Banner */}
-        <section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 sm:p-6">
+        <section className="rounded-2xl border border-[#E2E8F0] dark:border-[#334155] bg-white dark:bg-[#1E293B] p-5 sm:p-6 shadow-sm">
           <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <div className="text-xs font-medium text-slate-500 dark:text-slate-400">
@@ -234,8 +234,8 @@ export const QuizView: React.FC = () => {
                 </span>
               </div>
               <div className="mt-1.5 flex items-center gap-2.5">
-                <Trophy className="h-6 w-6 text-amber-500 shrink-0" />
-                <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white">
+                <Trophy className="h-6 w-6 text-[#D97706] dark:text-amber-400 shrink-0" />
+                <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-slate-100">
                   {locCurrentRank.title}
                 </h2>
               </div>
@@ -244,12 +244,12 @@ export const QuizView: React.FC = () => {
               </p>
             </div>
 
-            <div className="grid grid-cols-2 gap-4 sm:text-end border-t sm:border-t-0 pt-4 sm:pt-0 border-slate-100 dark:border-slate-800 shrink-0">
+            <div className="grid grid-cols-2 gap-4 sm:text-end border-t sm:border-t-0 pt-4 sm:pt-0 border-[#E2E8F0] dark:border-[#334155] shrink-0">
               <div>
                 <div className="text-xs text-slate-500 dark:text-slate-400">
                   {pick('مجموع النقاط', 'Score total', 'Total Points')}
                 </div>
-                <div className="font-mono-num text-2xl font-extrabold text-sky-600 dark:text-sky-400" dir="ltr">
+                <div className="font-mono-num text-2xl font-extrabold text-[#059669] dark:text-emerald-400" dir="ltr">
                   {stats.totalPoints}
                 </div>
               </div>
@@ -257,7 +257,7 @@ export const QuizView: React.FC = () => {
                 <div className="text-xs text-slate-500 dark:text-slate-400">
                   {pick('أفضل سلسلة', 'Meilleure série', 'Best Streak')}
                 </div>
-                <div className="font-mono-num text-2xl font-extrabold text-slate-900 dark:text-white" dir="ltr">
+                <div className="font-mono-num text-2xl font-extrabold text-slate-900 dark:text-slate-100" dir="ltr">
                   {stats.bestStreak}
                 </div>
               </div>
@@ -265,7 +265,7 @@ export const QuizView: React.FC = () => {
           </div>
 
           {/* Progress toward Next Rank */}
-          <div className="mt-5 pt-4 border-t border-slate-100 dark:border-slate-800">
+          <div className="mt-5 pt-4 border-t border-[#E2E8F0] dark:border-[#334155]">
             <div className="flex items-center justify-between text-xs font-semibold mb-2">
               <span className="text-slate-600 dark:text-slate-400">
                 {nextRank && locNextRank
@@ -280,13 +280,13 @@ export const QuizView: React.FC = () => {
                       'You reached the highest engineering rank!'
                     )}
               </span>
-              <span className="font-mono-num text-slate-900 dark:text-white" dir="ltr">
+              <span className="font-mono-num text-slate-900 dark:text-slate-100" dir="ltr">
                 {rankProgressPct}%
               </span>
             </div>
-            <div className="h-2 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800">
+            <div className="h-2 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-[#0F172A]">
               <div
-                className="h-full bg-sky-600 transition-all duration-300"
+                className="h-full bg-[#059669] transition-all duration-300"
                 style={{ width: `${rankProgressPct}%` }}
               />
             </div>
@@ -294,12 +294,12 @@ export const QuizView: React.FC = () => {
         </section>
 
         {/* Primary Action: Progressive Escalating Challenge */}
-        <section className="rounded-2xl border border-sky-200 dark:border-sky-900 bg-sky-50/60 dark:bg-sky-950/30 p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <section className="rounded-2xl border border-emerald-200 dark:border-emerald-800/60 bg-emerald-50/70 dark:bg-[#1E293B] p-5 sm:p-6 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <div className="text-xs font-semibold text-sky-700 dark:text-sky-400">
+            <div className="text-xs font-semibold text-[#059669] dark:text-emerald-400">
               {pick('الوضع المتدرج · 9 أسئلة متصاعدة الصعوبة', 'Mode progressif · 9 questions évolutives', 'Progressive Mode · 9 Escalating Questions')}
             </div>
-            <h3 className="mt-1 text-lg font-extrabold text-slate-900 dark:text-white">
+            <h3 className="mt-1 text-lg font-extrabold text-slate-900 dark:text-slate-100">
               {pick(
                 'التحدي التدرجي الكامل (مبتدئ ← متوسط ← خبير)',
                 'Défi Progressif Complet (Débutant → Intermédiaire → Expert)',
@@ -317,7 +317,7 @@ export const QuizView: React.FC = () => {
           <button
             type="button"
             onClick={() => startQuiz('progressive')}
-            className="inline-flex min-h-[48px] items-center justify-center gap-2 rounded-xl bg-sky-600 px-6 py-3 text-sm font-bold text-white hover:bg-sky-700 transition-colors whitespace-nowrap shrink-0"
+            className="inline-flex min-h-[48px] items-center justify-center gap-2 rounded-xl bg-[#059669] px-6 py-3 text-sm font-bold text-white hover:bg-[#047857] transition-colors whitespace-nowrap shrink-0 shadow-sm"
           >
             <span>{pick('ابدأ التحدي التدرجي', 'Lancer le défi', 'Start Progressive Quiz')}</span>
             {isRtl ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
@@ -343,10 +343,10 @@ export const QuizView: React.FC = () => {
               return (
                 <div
                   key={lvl}
-                  className={`flex flex-col justify-between rounded-2xl border p-5 transition-colors ${
+                  className={`flex flex-col justify-between rounded-2xl border p-5 shadow-sm transition-colors ${
                     unlocked
-                      ? 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900'
-                      : 'border-slate-200/70 dark:border-slate-800/60 bg-slate-100/70 dark:bg-slate-900/40 opacity-85'
+                      ? 'border-[#E2E8F0] dark:border-[#334155] bg-white dark:bg-[#1E293B]'
+                      : 'border-[#E2E8F0]/80 dark:border-[#334155]/60 bg-slate-100/80 dark:bg-[#1E293B]/50 opacity-85'
                   }`}
                 >
                   <div>
@@ -363,7 +363,7 @@ export const QuizView: React.FC = () => {
                       </span>
                     </div>
 
-                    <h4 className="mt-2 text-lg font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+                    <h4 className="mt-2 text-lg font-extrabold text-slate-900 dark:text-slate-100 flex items-center gap-2">
                       {!unlocked && <Lock className="h-4 w-4 text-slate-400 shrink-0" />}
                       <span>{pick(`المستوى ${locMeta.label}`, `Niveau ${locMeta.label}`, `${locMeta.label} Level`)}</span>
                     </h4>
@@ -378,8 +378,8 @@ export const QuizView: React.FC = () => {
                     onClick={() => startQuiz(lvl)}
                     className={`mt-5 min-h-[44px] w-full rounded-xl py-2.5 text-xs font-bold transition-colors ${
                       unlocked
-                        ? 'bg-slate-900 dark:bg-slate-800 text-white hover:bg-slate-800 dark:hover:bg-sky-600'
-                        : 'bg-slate-200 dark:bg-slate-800 text-slate-500 cursor-not-allowed'
+                        ? 'bg-[#059669] text-white hover:bg-[#047857]'
+                        : 'bg-slate-200 dark:bg-[#0F172A] text-slate-500 cursor-not-allowed'
                     }`}
                   >
                     {unlocked
@@ -401,10 +401,10 @@ export const QuizView: React.FC = () => {
         </section>
 
         {/* Ranks Reference Table */}
-        <section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden">
-          <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200 dark:border-slate-800">
-            <div className="flex items-center gap-2 text-sm font-bold text-slate-900 dark:text-white">
-              <Award className="h-4 w-4 text-sky-600 dark:text-sky-400" />
+        <section className="rounded-2xl border border-[#E2E8F0] dark:border-[#334155] bg-white dark:bg-[#1E293B] overflow-hidden shadow-sm">
+          <div className="flex items-center justify-between px-5 py-4 border-b border-[#E2E8F0] dark:border-[#334155]">
+            <div className="flex items-center gap-2 text-sm font-bold text-slate-900 dark:text-slate-100">
+              <Award className="h-4 w-4 text-[#059669] dark:text-emerald-400" />
               <h3>{pick('تصنيفات ورتب مختبر الإلكترونيك', 'Rangs et titres du laboratoire', 'Lab Ranks & Mastery Tiers')}</h3>
             </div>
             {stats.totalPoints > 0 && (
@@ -418,7 +418,7 @@ export const QuizView: React.FC = () => {
             )}
           </div>
 
-          <div className="divide-y divide-slate-200 dark:divide-slate-800">
+          <div className="divide-y divide-[#E2E8F0] dark:divide-[#334155]">
             {QUIZ_RANKS.map((r) => {
               const reached = stats.totalPoints >= r.minPoints;
               const isCurrent = currentRank.id === r.id;
@@ -427,12 +427,12 @@ export const QuizView: React.FC = () => {
                 <div
                   key={r.id}
                   className={`grid grid-cols-1 sm:grid-cols-12 gap-2 px-5 py-3.5 text-sm items-center ${
-                    isCurrent ? 'bg-sky-50/60 dark:bg-sky-950/30' : ''
+                    isCurrent ? 'bg-emerald-50/70 dark:bg-[#0F172A]/80' : ''
                   }`}
                 >
-                  <div className="sm:col-span-4 flex items-center gap-2 font-bold text-slate-900 dark:text-white">
+                  <div className="sm:col-span-4 flex items-center gap-2 font-bold text-slate-900 dark:text-slate-100">
                     {reached ? (
-                      <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                      <CheckCircle2 className="h-4 w-4 text-[#059669] dark:text-emerald-400 shrink-0" />
                     ) : (
                       <Lock className="h-4 w-4 text-slate-400 shrink-0" />
                     )}
@@ -459,15 +459,15 @@ export const QuizView: React.FC = () => {
   if (mode === 'summary') {
     const pct = deck.length > 0 ? Math.round((sessionCorrect / deck.length) * 100) : 0;
     return (
-      <div className="mx-auto max-w-2xl rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-8 space-y-6">
+      <div className="mx-auto max-w-2xl rounded-2xl border border-[#E2E8F0] dark:border-[#334155] bg-white dark:bg-[#1E293B] p-6 sm:p-8 space-y-6 shadow-sm">
         <div className="text-center">
           <div className="text-xs font-semibold text-slate-500 dark:text-slate-400">
             {pick('ملخص جولة الاختبار', 'Résumé de la session', 'Quiz Session Summary')} · {pick('التصنيف الحالي:', 'Rang :', 'Rank:')} {locCurrentRank.title}
           </div>
-          <div className="font-mono-num mt-2 text-4xl font-extrabold text-sky-600 dark:text-sky-400" dir="ltr">
+          <div className="font-mono-num mt-2 text-4xl font-extrabold text-[#059669] dark:text-emerald-400" dir="ltr">
             {sessionCorrect} / {deck.length} ({pct}%)
           </div>
-          <div className="mt-2 font-mono-num text-sm font-bold text-emerald-600 dark:text-emerald-400">
+          <div className="mt-2 font-mono-num text-sm font-bold text-[#059669] dark:text-emerald-400">
             {pick(
               `+${sessionPoints} نقطة مكتسبة في هذه الجولة · الإجمالي: ${stats.totalPoints} نقطة`,
               `+${sessionPoints} pts gagnés · Total : ${stats.totalPoints} pts`,
@@ -478,13 +478,13 @@ export const QuizView: React.FC = () => {
 
         {/* Breakdown by Level if Progressive */}
         {playPath === 'progressive' && (
-          <div className="grid grid-cols-3 gap-3 pt-4 border-t border-slate-200 dark:border-slate-800 text-center">
+          <div className="grid grid-cols-3 gap-3 pt-4 border-t border-[#E2E8F0] dark:border-[#334155] text-center">
             {(['beginner', 'intermediate', 'expert'] as QuizLevel[]).map((lvl) => (
-              <div key={lvl} className="rounded-xl bg-slate-50 dark:bg-slate-950 p-3 border border-slate-200 dark:border-slate-800">
+              <div key={lvl} className="rounded-xl bg-[#F8FAFC] dark:bg-[#0F172A] p-3 border border-[#E2E8F0] dark:border-[#334155]">
                 <div className="text-xs text-slate-500 dark:text-slate-400">
                   {getLocalizedQuizLevelMeta(lvl, QUIZ_LEVEL_META[lvl], lang).label}
                 </div>
-                <div className="font-mono-num text-base font-bold text-slate-900 dark:text-white mt-0.5" dir="ltr">
+                <div className="font-mono-num text-base font-bold text-slate-900 dark:text-slate-100 mt-0.5" dir="ltr">
                   {levelBreakdown[lvl].right} / {levelBreakdown[lvl].total}
                 </div>
               </div>
@@ -516,7 +516,7 @@ export const QuizView: React.FC = () => {
           <button
             type="button"
             onClick={() => startQuiz(playPath)}
-            className="flex-1 inline-flex min-h-[48px] items-center justify-center gap-2 rounded-xl bg-sky-600 px-5 py-3 text-sm font-semibold text-white hover:bg-sky-700 transition-colors"
+            className="flex-1 inline-flex min-h-[48px] items-center justify-center gap-2 rounded-xl bg-[#059669] px-5 py-3 text-sm font-semibold text-white hover:bg-[#047857] transition-colors"
           >
             <RotateCcw className="h-4 w-4" />
             <span>{pick('إعادة نفس الاختبار', 'Recommencer ce quiz', 'Retry This Quiz')}</span>
@@ -524,7 +524,7 @@ export const QuizView: React.FC = () => {
           <button
             type="button"
             onClick={() => setMode('menu')}
-            className="flex-1 inline-flex min-h-[48px] items-center justify-center gap-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-5 py-3 text-sm font-semibold text-slate-800 dark:text-white hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+            className="flex-1 inline-flex min-h-[48px] items-center justify-center gap-2 rounded-xl border border-[#E2E8F0] dark:border-[#334155] bg-white dark:bg-[#0F172A] px-5 py-3 text-sm font-semibold text-slate-800 dark:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
           >
             <span>{pick('لوحة المستويات والنقاط', 'Niveaux & Classement', 'Levels & Ranks')}</span>
           </button>
@@ -547,19 +547,19 @@ export const QuizView: React.FC = () => {
         <button
           type="button"
           onClick={() => setMode('menu')}
-          className="min-h-[40px] text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+          className="min-h-[40px] text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-[#059669] dark:hover:text-emerald-400"
         >
           {isRtl ? '← العودة للمستويات' : '← ' + pick('العودة للمستويات', 'Retour aux niveaux', 'Back to Levels')}
         </button>
 
         <div className="flex items-center gap-4 text-xs font-bold">
           {streak >= 2 && (
-            <span className="inline-flex items-center gap-1 text-amber-600 dark:text-amber-400 font-mono-num">
+            <span className="inline-flex items-center gap-1 text-[#D97706] dark:text-amber-400 font-mono-num">
               <Flame className="h-4 w-4" />
               <span>{pick(`سلسلة ×${streak}`, `Série ×${streak}`, `Streak ×${streak}`)}</span>
             </span>
           )}
-          <span className="font-mono-num text-sky-600 dark:text-sky-400" dir="ltr">
+          <span className="font-mono-num text-[#059669] dark:text-emerald-400" dir="ltr">
             +{sessionPoints} pts
           </span>
           <span className="font-mono-num text-slate-700 dark:text-slate-300" dir="ltr">
@@ -569,15 +569,15 @@ export const QuizView: React.FC = () => {
       </div>
 
       {/* Progress Track */}
-      <div className="h-2 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800">
+      <div className="h-2 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-[#1E293B]">
         <div
-          className="h-full bg-sky-600 transition-all duration-200"
+          className="h-full bg-[#059669] transition-all duration-200"
           style={{ width: `${((currentIdx + (isAnswered ? 1 : 0)) / deck.length) * 100}%` }}
         />
       </div>
 
       {/* Question Card */}
-      <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 sm:p-6 space-y-5">
+      <div className="rounded-2xl border border-[#E2E8F0] dark:border-[#334155] bg-white dark:bg-[#1E293B] p-5 sm:p-6 space-y-5 shadow-sm">
         {/* Clean Unboxed Metadata */}
         <div className="text-xs font-semibold text-slate-500 dark:text-slate-400">
           <span>{pick('المستوى:', 'Niveau :', 'Level:')} {levelMeta.label}</span>
@@ -587,7 +587,7 @@ export const QuizView: React.FC = () => {
           <span className="font-mono-num">{currentQ.points} {pick('نقطة', 'pts', 'pts')}</span>
         </div>
 
-        <h3 className="text-base sm:text-lg font-bold leading-relaxed text-slate-900 dark:text-white">
+        <h3 className="text-base sm:text-lg font-bold leading-relaxed text-slate-900 dark:text-slate-100">
           {locQ.question}
         </h3>
 
@@ -597,7 +597,7 @@ export const QuizView: React.FC = () => {
             const isRight = idx === currentQ.correctIndex;
 
             let btnStyle =
-              'border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800';
+              'border-[#E2E8F0] dark:border-[#334155] bg-[#F8FAFC] dark:bg-[#0F172A] text-slate-800 dark:text-slate-200 hover:border-[#059669] hover:bg-emerald-50/40 dark:hover:bg-slate-800';
             if (isAnswered) {
               if (isRight) {
                 btnStyle =
@@ -607,7 +607,7 @@ export const QuizView: React.FC = () => {
                   'border-rose-500 bg-rose-50 dark:bg-rose-950/60 text-rose-950 dark:text-rose-100';
               } else {
                 btnStyle =
-                  'border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/50 text-slate-400 dark:text-slate-500';
+                  'border-[#E2E8F0] dark:border-[#334155] bg-[#F8FAFC]/50 dark:bg-[#0F172A]/50 text-slate-400 dark:text-slate-500';
               }
             }
 
@@ -621,7 +621,7 @@ export const QuizView: React.FC = () => {
               >
                 <span className="leading-relaxed">{opt}</span>
                 {isAnswered && isRight && (
-                  <CheckCircle2 className="h-5 w-5 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                  <CheckCircle2 className="h-5 w-5 shrink-0 text-[#059669] dark:text-emerald-400" />
                 )}
                 {isAnswered && isPicked && !isRight && (
                   <XCircle className="h-5 w-5 shrink-0 text-rose-600 dark:text-rose-400" />
@@ -632,9 +632,9 @@ export const QuizView: React.FC = () => {
         </div>
 
         {isAnswered && (
-          <div className="pt-4 border-t border-slate-200 dark:border-slate-800 space-y-4">
+          <div className="pt-4 border-t border-[#E2E8F0] dark:border-[#334155] space-y-4">
             <div className="text-sm leading-relaxed text-slate-700 dark:text-slate-300">
-              <span className={`font-bold ${isCorrect ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
+              <span className={`font-bold ${isCorrect ? 'text-[#059669] dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
                 {isCorrect
                   ? pick(
                       `إجابة صحيحة (+${lastAwarded?.base ?? 0}${
@@ -654,7 +654,7 @@ export const QuizView: React.FC = () => {
             <button
               type="button"
               onClick={handleNext}
-              className="w-full min-h-[48px] rounded-xl bg-sky-600 py-3 text-sm font-semibold text-white hover:bg-sky-700 transition-colors"
+              className="w-full min-h-[48px] rounded-xl bg-[#059669] py-3 text-sm font-semibold text-white hover:bg-[#047857] transition-colors"
             >
               {currentIdx + 1 >= deck.length
                 ? pick('عرض ملخص الجولة والنقاط', 'Voir le résumé et le score', 'View Session Summary')

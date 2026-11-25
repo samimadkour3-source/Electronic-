@@ -106,9 +106,45 @@ export const NotesView: React.FC = () => {
     setFormError('');
   };
 
+  const pushEditorHistory = () => {
+    try {
+      if (!window.history.state?.__notesEditor) {
+        const base =
+          window.history.state && typeof window.history.state === 'object'
+            ? window.history.state
+            : {};
+        window.history.pushState({ ...base, __notesEditor: true }, '');
+      }
+    } catch {
+      // Ignore history errors
+    }
+  };
+
+  const closeEditor = () => {
+    if (window.history.state?.__notesEditor) {
+      window.history.back();
+    } else {
+      setIsEditorOpen(false);
+      resetForm();
+    }
+  };
+
+  useEffect(() => {
+    if (!isEditorOpen) return;
+    const onPopState = (e: PopStateEvent) => {
+      if (!e.state?.__notesEditor) {
+        setIsEditorOpen(false);
+        resetForm();
+      }
+    };
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
+  }, [isEditorOpen]);
+
   const openNewEditor = (presetCat?: NoteCategory) => {
     resetForm();
     if (presetCat) setCategory(presetCat);
+    pushEditorHistory();
     setIsEditorOpen(true);
   };
 
@@ -123,6 +159,7 @@ export const NotesView: React.FC = () => {
     setContent(note.content);
     setPinned(note.pinned);
     setFormError('');
+    pushEditorHistory();
     setIsEditorOpen(true);
   };
 
@@ -191,8 +228,7 @@ export const NotesView: React.FC = () => {
       setNotes((prev) => [newNote, ...prev]);
     }
 
-    setIsEditorOpen(false);
-    resetForm();
+    closeEditor();
   };
 
   const handleTogglePin = (id: string) => {
@@ -313,9 +349,9 @@ export const NotesView: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Header & Primary Action */}
-      <section className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between pb-5 border-b border-slate-200 dark:border-slate-800">
+      <section className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between pb-5 border-b border-[#E2E8F0] dark:border-[#334155]">
         <div className="max-w-2xl">
-          <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+          <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">
             {pick(
               'دفتر الملاحظات وأفكار الدوائر الخاصة',
               'Carnet de notes et d’idées de circuits',
@@ -336,7 +372,7 @@ export const NotesView: React.FC = () => {
             <button
               type="button"
               onClick={handleExportNotes}
-              className="inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              className="inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-[#E2E8F0] dark:border-[#334155] bg-white dark:bg-[#1E293B] px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors shadow-sm"
             >
               <Download className="h-4 w-4 text-slate-500" />
               <span>{pick('تصدير (.txt)', 'Exporter (.txt)', 'Export (.txt)')}</span>
@@ -346,7 +382,7 @@ export const NotesView: React.FC = () => {
           <button
             type="button"
             onClick={() => openNewEditor()}
-            className="inline-flex min-h-[44px] items-center gap-2 rounded-xl bg-sky-600 px-4 py-2 text-xs sm:text-sm font-bold text-white hover:bg-sky-700 transition-colors"
+            className="inline-flex min-h-[44px] items-center gap-2 rounded-xl bg-[#059669] px-4 py-2 text-xs sm:text-sm font-bold text-white hover:bg-[#047857] transition-colors shadow-sm"
           >
             <Plus className="h-4 w-4" />
             <span>{pick('ملاحظة أو فكرة جديدة', 'Nouvelle note / idée', 'New Note / Idea')}</span>
@@ -355,7 +391,7 @@ export const NotesView: React.FC = () => {
       </section>
 
       {exportNotice && (
-        <div className="flex items-center gap-2 rounded-xl border border-emerald-200 dark:border-emerald-900 bg-emerald-50 dark:bg-emerald-950/40 px-4 py-2.5 text-xs font-semibold text-emerald-700 dark:text-emerald-300">
+        <div className="flex items-center gap-2 rounded-xl border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/40 px-4 py-2.5 text-xs font-semibold text-[#059669] dark:text-emerald-300">
           <Check className="h-4 w-4 shrink-0" />
           <span>{exportNotice}</span>
         </div>
@@ -365,10 +401,10 @@ export const NotesView: React.FC = () => {
       {isEditorOpen && (
         <form
           onSubmit={handleSaveNote}
-          className="rounded-2xl border border-sky-200 dark:border-sky-900/70 bg-white dark:bg-slate-900 p-5 sm:p-6 shadow-sm space-y-5"
+          className="rounded-2xl border border-[#059669]/40 dark:border-emerald-700/60 bg-white dark:bg-[#1E293B] p-5 sm:p-6 shadow-sm space-y-5"
         >
-          <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-100 dark:border-slate-800">
-            <h3 className="text-base font-bold text-slate-900 dark:text-white">
+          <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-[#E2E8F0] dark:border-[#334155]">
+            <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">
               {editingId
                 ? pick('تعديل الملاحظة', 'Modifier la note', 'Edit Note')
                 : pick('إضافة ملاحظة أو فكرة دائرة جديدة', 'Nouvelle note ou idée de circuit', 'Create Note or Circuit Idea')}
@@ -386,10 +422,7 @@ export const NotesView: React.FC = () => {
               )}
               <button
                 type="button"
-                onClick={() => {
-                  setIsEditorOpen(false);
-                  resetForm();
-                }}
+                onClick={closeEditor}
                 aria-label={pick('إغلاق المحرر', 'Fermer l’éditeur', 'Close editor')}
                 className="flex min-h-[40px] min-w-[40px] items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800"
               >
@@ -422,7 +455,7 @@ export const NotesView: React.FC = () => {
                   'Ex : Alarme lumineuse LDR ou notes sur NE555',
                   'e.g. LDR light alarm or 555 timer pinout notes'
                 )}
-                className="w-full min-h-[44px] rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 px-3.5 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:border-sky-500 focus:outline-none"
+                className="w-full min-h-[44px] rounded-xl border border-[#E2E8F0] dark:border-[#334155] bg-[#F8FAFC] dark:bg-[#0F172A] px-3.5 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:border-[#059669] focus:outline-none"
               />
             </div>
 
@@ -436,7 +469,7 @@ export const NotesView: React.FC = () => {
                 value={voltage}
                 onChange={(e) => setVoltage(e.target.value)}
                 placeholder="5V / 9V / 12V DC"
-                className="w-full min-h-[44px] rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 px-3.5 text-sm font-mono-num text-slate-900 dark:text-white placeholder:text-slate-400 focus:border-sky-500 focus:outline-none"
+                className="w-full min-h-[44px] rounded-xl border border-[#E2E8F0] dark:border-[#334155] bg-[#F8FAFC] dark:bg-[#0F172A] px-3.5 text-sm font-mono-num text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:border-[#059669] focus:outline-none"
               />
             </div>
           </div>
@@ -456,8 +489,8 @@ export const NotesView: React.FC = () => {
                     onClick={() => setCategory(cat)}
                     className={`min-h-[42px] rounded-xl border px-3 py-2 text-xs font-bold transition-colors ${
                       active
-                        ? 'border-sky-600 bg-sky-50 text-sky-700 dark:border-sky-500 dark:bg-sky-950/70 dark:text-sky-300'
-                        : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
+                        ? 'border-[#059669] bg-emerald-50 text-[#059669] dark:border-emerald-500 dark:bg-emerald-950/60 dark:text-emerald-300'
+                        : 'border-[#E2E8F0] dark:border-[#334155] bg-white dark:bg-[#0F172A] text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
                     }`}
                   >
                     {categoryLabels[cat]}
@@ -476,7 +509,7 @@ export const NotesView: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setShowPartPicker((s) => !s)}
-                className="text-xs font-semibold text-sky-600 dark:text-sky-400 hover:underline"
+                className="text-xs font-semibold text-[#059669] dark:text-emerald-400 hover:underline"
               >
                 {showPartPicker
                   ? pick('إخفاء قائمة الدليل', 'Masquer la liste', 'Hide guide list')
@@ -500,19 +533,19 @@ export const NotesView: React.FC = () => {
                   'Ajouter un composant ou valeur (ex : 10kΩ, BC547)...',
                   'Add part or value (e.g. 10kΩ, BC547)...'
                 )}
-                className="flex-1 min-h-[44px] rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 px-3.5 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:border-sky-500 focus:outline-none"
+                className="flex-1 min-h-[44px] rounded-xl border border-[#E2E8F0] dark:border-[#334155] bg-[#F8FAFC] dark:bg-[#0F172A] px-3.5 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:border-[#059669] focus:outline-none"
               />
               <button
                 type="button"
                 onClick={() => handleAddPart(partInput)}
-                className="min-h-[44px] rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 text-xs font-bold text-slate-800 dark:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors shrink-0"
+                className="min-h-[44px] rounded-xl border border-[#E2E8F0] dark:border-[#334155] bg-white dark:bg-[#0F172A] px-4 text-xs font-bold text-slate-800 dark:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shrink-0"
               >
                 {pick('إضافة', 'Ajouter', 'Add')}
               </button>
             </div>
 
             {showPartPicker && (
-              <div className="flex flex-wrap gap-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/60 p-3">
+              <div className="flex flex-wrap gap-1.5 rounded-xl border border-[#E2E8F0] dark:border-[#334155] bg-[#F8FAFC] dark:bg-[#0F172A] p-3">
                 {quickSuggestedParts.map((item) => {
                   const selected = parts.includes(item.label) || parts.includes(item.short);
                   return (
@@ -524,8 +557,8 @@ export const NotesView: React.FC = () => {
                       }
                       className={`min-h-[34px] rounded-lg border px-2.5 py-1 text-xs font-medium transition-colors ${
                         selected
-                          ? 'border-sky-500 bg-sky-50 text-sky-700 dark:bg-sky-950 dark:text-sky-300'
-                          : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:border-sky-300'
+                          ? 'border-[#059669] bg-emerald-50 text-[#059669] dark:bg-emerald-950 dark:text-emerald-300'
+                          : 'border-[#E2E8F0] dark:border-[#334155] bg-white dark:bg-[#1E293B] text-slate-700 dark:text-slate-300 hover:border-[#059669]'
                       }`}
                     >
                       {selected ? '✓ ' : '+ '}
@@ -543,7 +576,7 @@ export const NotesView: React.FC = () => {
                     key={p}
                     type="button"
                     onClick={() => handleRemovePart(p)}
-                    className="inline-flex min-h-[32px] items-center gap-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 text-xs font-medium text-slate-800 dark:text-slate-200 hover:bg-rose-50 hover:text-rose-700 dark:hover:bg-rose-950/50 dark:hover:text-rose-300 transition-colors"
+                    className="inline-flex min-h-[32px] items-center gap-1.5 rounded-lg border border-[#E2E8F0] dark:border-[#334155] bg-slate-100 dark:bg-[#0F172A] px-2.5 py-1 text-xs font-medium text-slate-800 dark:text-slate-200 hover:bg-rose-50 hover:text-rose-700 dark:hover:bg-rose-950/50 dark:hover:text-rose-300 transition-colors"
                     title={pick('اضغط للإزالة', 'Cliquer pour retirer', 'Click to remove')}
                   >
                     <span>{p}</span>
@@ -571,19 +604,19 @@ export const NotesView: React.FC = () => {
                 'Décrivez ici votre idée de circuit, le brochage ou vos relevés au multimètre...',
                 'Write down your circuit wiring idea, pinouts, component equations, or measurement notes...'
               )}
-              className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 p-3.5 text-sm leading-relaxed text-slate-900 dark:text-white placeholder:text-slate-400 focus:border-sky-500 focus:outline-none"
+              className="w-full rounded-xl border border-[#E2E8F0] dark:border-[#334155] bg-[#F8FAFC] dark:bg-[#0F172A] p-3.5 text-sm leading-relaxed text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:border-[#059669] focus:outline-none"
             />
           </div>
 
           {/* Pin Toggle + Submit */}
-          <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-100 dark:border-slate-800">
+          <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-[#E2E8F0] dark:border-[#334155]">
             <button
               type="button"
               onClick={() => setPinned((p) => !p)}
               className={`inline-flex min-h-[42px] items-center gap-2 rounded-xl border px-3.5 py-2 text-xs font-bold transition-colors ${
                 pinned
-                  ? 'border-amber-400 bg-amber-50 text-amber-800 dark:border-amber-700 dark:bg-amber-950/40 dark:text-amber-300'
-                  : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
+                  ? 'border-[#D97706] bg-amber-50 text-[#D97706] dark:border-amber-600 dark:bg-amber-950/40 dark:text-amber-400'
+                  : 'border-[#E2E8F0] dark:border-[#334155] bg-white dark:bg-[#0F172A] text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
               }`}
             >
               <Pin className="h-3.5 w-3.5" />
@@ -593,17 +626,14 @@ export const NotesView: React.FC = () => {
             <div className="flex items-center gap-2">
               <button
                 type="button"
-                onClick={() => {
-                  setIsEditorOpen(false);
-                  resetForm();
-                }}
-                className="min-h-[44px] rounded-xl border border-slate-200 dark:border-slate-700 px-4 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                onClick={closeEditor}
+                className="min-h-[44px] rounded-xl border border-[#E2E8F0] dark:border-[#334155] px-4 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
               >
                 {pick('إلغاء', 'Annuler', 'Cancel')}
               </button>
               <button
                 type="submit"
-                className="inline-flex min-h-[44px] items-center gap-2 rounded-xl bg-sky-600 px-5 py-2 text-xs sm:text-sm font-bold text-white hover:bg-sky-700 transition-colors"
+                className="inline-flex min-h-[44px] items-center gap-2 rounded-xl bg-[#059669] px-5 py-2 text-xs sm:text-sm font-bold text-white hover:bg-[#047857] transition-colors"
               >
                 <Check className="h-4 w-4" />
                 <span>{editingId ? pick('حفظ التعديلات', 'Mettre à jour', 'Save Changes') : pick('حفظ في الجهاز', 'Enregistrer localement', 'Save Locally')}</span>
@@ -624,21 +654,21 @@ export const NotesView: React.FC = () => {
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder={pick('ابحث في ملاحظاتك أو العناصر...', 'Rechercher dans vos notes...', 'Search your notes or parts...')}
               aria-label={pick('البحث في الملاحظات', 'Rechercher dans les notes', 'Search notes')}
-              className="w-full min-h-[44px] rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 ps-10 pe-4 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:border-sky-500 focus:outline-none"
+              className="w-full min-h-[44px] rounded-xl border border-[#E2E8F0] dark:border-[#334155] bg-white dark:bg-[#1E293B] ps-10 pe-4 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:border-[#059669] focus:outline-none"
             />
           </div>
 
-          <div className="flex items-center gap-1 overflow-x-auto rounded-xl bg-slate-200/70 dark:bg-slate-900 p-1 border border-slate-200/60 dark:border-slate-800">
+          <div className="flex items-center gap-1 overflow-x-auto rounded-xl bg-slate-200/70 dark:bg-[#0F172A] p-1 border border-[#E2E8F0] dark:border-[#334155]">
             <button
               type="button"
               onClick={() => setFilterCat('all')}
               className={`min-h-[38px] rounded-lg px-3 py-1.5 text-xs font-semibold whitespace-nowrap shrink-0 transition-colors ${
                 filterCat === 'all'
-                  ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm'
+                  ? 'bg-[#059669] text-white shadow-sm'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
-              {pick('الكل', 'Toutes', 'All')} <span className="font-mono-num opacity-75">({counts.all})</span>
+              {pick('الكل', 'Toutes', 'All')} <span className="font-mono-num opacity-80">({counts.all})</span>
             </button>
             {(['circuit_idea', 'note', 'fault_log', 'shopping'] as NoteCategory[]).map((cat) => (
               <button
@@ -647,11 +677,11 @@ export const NotesView: React.FC = () => {
                 onClick={() => setFilterCat(cat)}
                 className={`min-h-[38px] rounded-lg px-3 py-1.5 text-xs font-semibold whitespace-nowrap shrink-0 transition-colors ${
                   filterCat === cat
-                    ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm'
+                    ? 'bg-[#059669] text-white shadow-sm'
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                 }`}
               >
-                {categoryLabels[cat]} <span className="font-mono-num opacity-75">({counts[cat]})</span>
+                {categoryLabels[cat]} <span className="font-mono-num opacity-80">({counts[cat]})</span>
               </button>
             ))}
           </div>
@@ -660,12 +690,12 @@ export const NotesView: React.FC = () => {
 
       {/* Notes Grid or Clean Empty State */}
       {notes.length === 0 ? (
-        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-8 sm:p-12 text-center space-y-4">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-sky-50 dark:bg-sky-950 text-sky-600 dark:text-sky-400">
+        <div className="rounded-2xl border border-[#E2E8F0] dark:border-[#334155] bg-white dark:bg-[#1E293B] p-8 sm:p-12 text-center space-y-4 shadow-sm">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 dark:bg-[#0F172A] text-[#059669] dark:text-emerald-400">
             <NotebookPen className="h-6 w-6" />
           </div>
           <div className="max-w-md mx-auto space-y-1.5">
-            <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
+            <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100">
               {pick('دفترك الإلكتروني جاهز للكتابة', 'Votre carnet est prêt', 'Your Electronics Notebook Is Ready')}
             </h3>
             <p className="text-xs sm:text-sm leading-relaxed text-slate-600 dark:text-slate-400">
@@ -680,7 +710,7 @@ export const NotesView: React.FC = () => {
             <button
               type="button"
               onClick={() => openNewEditor('circuit_idea')}
-              className="inline-flex min-h-[44px] items-center gap-2 rounded-xl bg-sky-600 px-5 py-2.5 text-xs sm:text-sm font-bold text-white hover:bg-sky-700 transition-colors"
+              className="inline-flex min-h-[44px] items-center gap-2 rounded-xl bg-[#059669] px-5 py-2.5 text-xs sm:text-sm font-bold text-white hover:bg-[#047857] transition-colors"
             >
               <Plus className="h-4 w-4" />
               <span>{pick('إضافة فكرة دائرة', 'Ajouter une idée de circuit', 'Add Circuit Idea')}</span>
@@ -688,14 +718,14 @@ export const NotesView: React.FC = () => {
             <button
               type="button"
               onClick={() => openNewEditor('note')}
-              className="inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-5 py-2.5 text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+              className="inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-[#E2E8F0] dark:border-[#334155] bg-white dark:bg-[#0F172A] px-5 py-2.5 text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
             >
               <span>{pick('كتابة ملاحظة سريعة', 'Écrire une note', 'Write Quick Note')}</span>
             </button>
           </div>
         </div>
       ) : filteredNotes.length === 0 ? (
-        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-8 text-center space-y-3">
+        <div className="rounded-2xl border border-[#E2E8F0] dark:border-[#334155] bg-white dark:bg-[#1E293B] p-8 text-center space-y-3 shadow-sm">
           <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">
             {pick('لا توجد ملاحظات مطابقة للبحث أو التصنيف المحدد.', 'Aucune note ne correspond à votre filtre.', 'No notes match your search or category filter.')}
           </p>
@@ -705,7 +735,7 @@ export const NotesView: React.FC = () => {
               setFilterCat('all');
               setSearchQuery('');
             }}
-            className="min-h-[44px] rounded-xl bg-sky-600 px-4 py-2 text-xs font-bold text-white hover:bg-sky-700"
+            className="min-h-[44px] rounded-xl bg-[#059669] px-4 py-2 text-xs font-bold text-white hover:bg-[#047857]"
           >
             {pick('عرض كل الملاحظات', 'Afficher toutes les notes', 'Show all notes')}
           </button>
@@ -717,13 +747,13 @@ export const NotesView: React.FC = () => {
             return (
               <article
                 key={note.id}
-                className="flex flex-col justify-between rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 transition-all hover:border-sky-300 dark:hover:border-sky-800 hover:shadow-sm"
+                className="flex flex-col justify-between rounded-2xl border border-[#E2E8F0] dark:border-[#334155] bg-white dark:bg-[#1E293B] p-5 shadow-sm transition-all hover:border-[#059669] dark:hover:border-emerald-500"
               >
                 <div className="space-y-3">
                   {/* Quiet unboxed metadata line (Zero-Pill Discipline) */}
                   <div className="flex items-center justify-between gap-2">
                     <div className="text-xs font-medium text-slate-500 dark:text-slate-400 truncate">
-                      <span className="font-semibold text-sky-700 dark:text-sky-400">
+                      <span className="font-semibold text-[#059669] dark:text-emerald-400">
                         {categoryLabels[note.category]}
                       </span>
                       {note.voltage && (
@@ -744,7 +774,7 @@ export const NotesView: React.FC = () => {
                       aria-label={note.pinned ? pick('إلغاء التثبيت', 'Désépingler', 'Unpin') : pick('تثبيت الملاحظة', 'Épingler', 'Pin note')}
                       className={`flex min-h-[40px] min-w-[40px] -me-2 items-center justify-center rounded-lg transition-colors ${
                         note.pinned
-                          ? 'text-amber-600 dark:text-amber-400'
+                          ? 'text-[#D97706] dark:text-amber-400'
                           : 'text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
                       }`}
                     >
@@ -752,7 +782,7 @@ export const NotesView: React.FC = () => {
                     </button>
                   </div>
 
-                  <h3 className="text-base sm:text-lg font-bold leading-snug text-slate-900 dark:text-white">
+                  <h3 className="text-base sm:text-lg font-bold leading-snug text-slate-900 dark:text-slate-100">
                     {note.title}
                   </h3>
 
@@ -773,7 +803,7 @@ export const NotesView: React.FC = () => {
                 </div>
 
                 {/* Card Actions */}
-                <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2">
+                <div className="mt-4 pt-3 border-t border-[#E2E8F0] dark:border-[#334155] flex items-center justify-between gap-2">
                   {isConfirming ? (
                     <div className="flex w-full items-center justify-between gap-2">
                       <span className="text-xs font-semibold text-rose-600 dark:text-rose-400">
@@ -783,7 +813,7 @@ export const NotesView: React.FC = () => {
                         <button
                           type="button"
                           onClick={() => setConfirmDeleteId(null)}
-                          className="min-h-[38px] rounded-lg border border-slate-200 dark:border-slate-700 px-3 py-1 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
+                          className="min-h-[38px] rounded-lg border border-[#E2E8F0] dark:border-[#334155] px-3 py-1 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
                         >
                           {pick('تراجع', 'Annuler', 'Cancel')}
                         </button>
@@ -801,7 +831,7 @@ export const NotesView: React.FC = () => {
                       <button
                         type="button"
                         onClick={() => openEditEditor(note)}
-                        className="inline-flex min-h-[44px] items-center gap-1.5 text-xs font-bold text-sky-600 dark:text-sky-400 hover:underline"
+                        className="inline-flex min-h-[44px] items-center gap-1.5 text-xs font-bold text-[#059669] dark:text-emerald-400 hover:underline"
                       >
                         <Edit3 className="h-3.5 w-3.5" />
                         <span>{pick('تعديل', 'Modifier', 'Edit')}</span>

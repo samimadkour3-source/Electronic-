@@ -458,6 +458,100 @@ export const SchematicSymbol: React.FC<SchematicSymbolProps> = ({ componentId, c
           <text x="110" y="50" textAnchor="middle" fill="#0284C7" className="text-[11px] font-mono font-bold">LCD 16×2</text>
         </svg>
       );
+    case 'igbt':
+      return (
+        <svg viewBox="0 0 220 96" className={className} fill="none" aria-label="رمز ترانزستور IGBT">
+          <circle cx="110" cy="48" r="32" stroke="currentColor" strokeWidth="2.5" opacity="0.45" />
+          <line x1="36" y1="62" x2="86" y2="62" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+          <line x1="86" y1="28" x2="86" y2="66" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+          <line x1="98" y1="26" x2="98" y2="68" stroke="currentColor" strokeWidth="4" strokeLinecap="round" />
+          <line x1="98" y1="38" x2="132" y2="18" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" />
+          <line x1="132" y1="18" x2="132" y2="6" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" />
+          <line x1="98" y1="58" x2="132" y2="78" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" />
+          <line x1="132" y1="78" x2="132" y2="90" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" />
+          <polygon points="124,74 116,63 110,72" fill="currentColor" />
+          <text x="48" y="54" textAnchor="middle" fill="#059669" className="text-[11px] font-mono font-bold">G</text>
+          <text x="148" y="18" textAnchor="middle" fill="currentColor" className="text-[11px] font-mono font-bold">C</text>
+          <text x="148" y="84" textAnchor="middle" fill="currentColor" className="text-[11px] font-mono font-bold">E</text>
+        </svg>
+      );
+    case 'dual_schottky':
+      return (
+        <svg viewBox="0 0 220 96" className={className} fill="none" aria-label="رمز الدايود شوتكي المزدوج">
+          <line x1="20" y1="48" x2="62" y2="48" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+          <polygon points="62,32 62,64 94,48" fill="currentColor" fillOpacity="0.18" stroke="currentColor" strokeWidth="2.8" strokeLinejoin="round" />
+          <path d="M88 35 L88 29 L96 29 L96 67 L104 67 L104 61" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round" />
+          <line x1="96" y1="48" x2="124" y2="48" stroke="currentColor" strokeWidth="3" />
+          <line x1="110" y1="48" x2="110" y2="86" stroke="#059669" strokeWidth="3.2" strokeLinecap="round" />
+          <path d="M116 61 L116 67 L124 67 L124 29 L132 29 L132 35" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round" />
+          <polygon points="158,32 158,64 126,48" fill="currentColor" fillOpacity="0.18" stroke="currentColor" strokeWidth="2.8" strokeLinejoin="round" />
+          <line x1="158" y1="48" x2="200" y2="48" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+          <text x="32" y="38" textAnchor="middle" fill="currentColor" className="text-[10px] font-mono">A1</text>
+          <text x="188" y="38" textAnchor="middle" fill="currentColor" className="text-[10px] font-mono">A2</text>
+          <text x="128" y="84" textAnchor="start" fill="#059669" className="text-[10px] font-mono font-bold">K (Common)</text>
+        </svg>
+      );
+    case 'ultrasonic_hcsr04':
+      return (
+        <svg viewBox="0 0 220 96" className={className} fill="none" aria-label="رمز حساس المسافة HC-SR04">
+          <rect x="52" y="16" width="116" height="54" rx="6" stroke="currentColor" strokeWidth="2.8" fill="currentColor" fillOpacity="0.07" />
+          {[74, 98, 122, 146].map((x) => (
+            <line key={x} x1={x} y1="70" x2={x} y2="88" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" />
+          ))}
+          <text x="110" y="42" textAnchor="middle" fill="currentColor" className="text-[11px] font-mono font-bold">HC-SR04</text>
+          <text x="110" y="56" textAnchor="middle" fill="#059669" className="text-[9px] font-mono">40kHz SONAR</text>
+          <path d="M180 30 Q192 43 180 56" stroke="#059669" strokeWidth="2.5" strokeLinecap="round" />
+          <path d="M192 22 Q208 43 192 64" stroke="#059669" strokeWidth="2.5" strokeLinecap="round" />
+        </svg>
+      );
+    case 'dht_sensor':
+      return (
+        <svg viewBox="0 0 220 96" className={className} fill="none" aria-label="رمز حساس الحرارة والرطوبة DHT">
+          <rect x="64" y="16" width="92" height="54" rx="6" stroke="currentColor" strokeWidth="2.8" fill="currentColor" fillOpacity="0.07" />
+          {[82, 100, 118, 136].map((x) => (
+            <line key={x} x1={x} y1="70" x2={x} y2="88" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" />
+          ))}
+          <text x="110" y="40" textAnchor="middle" fill="currentColor" className="text-[11px] font-mono font-bold">DHT11/22</text>
+          <text x="110" y="56" textAnchor="middle" fill="#D97706" className="text-[10px] font-mono">°C / %RH</text>
+        </svg>
+      );
+    case 'pir_sensor':
+      return (
+        <svg viewBox="0 0 220 96" className={className} fill="none" aria-label="رمز حساس الحركة PIR">
+          <rect x="64" y="20" width="92" height="50" rx="6" stroke="currentColor" strokeWidth="2.8" fill="currentColor" fillOpacity="0.07" />
+          {[84, 110, 136].map((x) => (
+            <line key={x} x1={x} y1="70" x2={x} y2="88" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" />
+          ))}
+          <path d="M32 30 L56 42 M56 42 L48 44 M56 42 L53 34" stroke="#D97706" strokeWidth="2.4" strokeLinecap="round" />
+          <path d="M32 52 L56 56 M56 56 L49 60 M56 56 L51 50" stroke="#D97706" strokeWidth="2.4" strokeLinecap="round" />
+          <text x="110" y="48" textAnchor="middle" fill="currentColor" className="text-[11px] font-mono font-bold">PIR SENSOR</text>
+        </svg>
+      );
+    case 'servo_sg90':
+      return (
+        <svg viewBox="0 0 220 96" className={className} fill="none" aria-label="رمز محرك السيرفو SG90">
+          <circle cx="118" cy="48" r="28" stroke="currentColor" strokeWidth="3" fill="currentColor" fillOpacity="0.08" />
+          <line x1="28" y1="34" x2="92" y2="34" stroke="#F59E0B" strokeWidth="2.8" />
+          <line x1="28" y1="48" x2="90" y2="48" stroke="#DC2626" strokeWidth="2.8" />
+          <line x1="28" y1="62" x2="92" y2="62" stroke="currentColor" strokeWidth="2.8" />
+          <text x="118" y="53" textAnchor="middle" fill="currentColor" className="text-[13px] font-mono font-bold">M</text>
+          <path d="M154 28 A26 26 0 0 1 154 68" stroke="#059669" strokeWidth="2.5" strokeLinecap="round" />
+          <polygon points="154,23 148,32 159,32" fill="#059669" />
+          <text x="54" y="28" textAnchor="middle" fill="#D97706" className="text-[9px] font-mono">PWM</text>
+        </svg>
+      );
+    case 'supercapacitor':
+      return (
+        <svg viewBox="0 0 220 90" className={className} fill="none" aria-label="رمز المكثف الفائق Supercapacitor">
+          <line x1="20" y1="45" x2="92" y2="45" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" />
+          <rect x="92" y="20" width="8" height="50" rx="2" fill="currentColor" />
+          <rect x="118" y="20" width="8" height="50" rx="2" fill="#059669" />
+          <line x1="126" y1="45" x2="200" y2="45" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" />
+          <text x="70" y="30" textAnchor="middle" fill="#059669" className="text-[14px] font-bold">+</text>
+          <text x="150" y="30" textAnchor="middle" fill="currentColor" className="text-[14px] font-bold">-</text>
+          <text x="110" y="84" textAnchor="middle" fill="currentColor" className="text-[10px] font-mono">EDLC (F)</text>
+        </svg>
+      );
     case 'fuse':
     default:
       return (
